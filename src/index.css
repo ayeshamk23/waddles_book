@@ -1,4 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Patrick+Hand&family=Caveat:wght@400;600&family=Dancing+Script:wght@400;600&family=Indie+Flower&family=Shadows+Into+Light&family=Gloria+Hallelujah&family=Short+Stack&family=Press+Start+2P&family=Pixelify+Sans:wght@400;600&family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fredoka+One&family=Baloo+Thambi+2:wght@400&display=swap");
+
+@font-face {
+  font-family: "Srbija Sans";
+  src: url("/fonts/SrbijaSans.woff2") format("woff2"),
+    url("/fonts/SrbijaSans.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -11,8 +20,8 @@ html, body { height: 100%; margin: 0; }
 
 /* your flipbook CSS */
 :root {
-  --page-width: clamp(260px, 42vw, 360px);
-  --book-height: clamp(440px, 86vh, 560px);
+  --page-width: clamp(340px, 46vw, 480px);
+  --book-height: clamp(260px, 46vh, 400px);
   --page-height: calc(var(--book-height) - 20px);
   --book-width: calc(var(--page-width) * 2 + var(--fold-width));
   --flip-duration: 0.8s;
@@ -20,7 +29,7 @@ html, body { height: 100%; margin: 0; }
   --content-fade-duration: 0.1s;
   --delete-duration: 0.32s;
   --cover-bleed: clamp(6px, 1.1vw, 12px);
-  --cover-color: #000000;
+  --cover-color: #CF7197;
   --page-bg: #ffffff;
   --edge-shade: rgba(0, 0, 0, 0.22);
   --fold-width: 2px;
@@ -41,13 +50,427 @@ html, body { height: 100%; margin: 0; }
 }
 
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Baloo Thambi 2", sans-serif;
   background-color: #2e3537;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+.color-preview {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px #2b1a18;
+}
+
+.color-preview::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 999px;
+}
+
+.color-preview::-webkit-color-swatch {
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #2b1a18;
+}
+
+.color-preview::-moz-color-swatch {
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #2b1a18;
+}
+
+
+.selection-outline {
+  outline: 1px solid #4b90e2;
+  outline-offset: 0;
+}
+
+.resize-handle {
+  width: 10px;
+  height: 10px;
+  background: #4b90e2;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.resize-handle-inner {
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 0;
+}
+
+.resize-handle.handle-nw {
+  transform: translate(-50%, -50%);
+}
+
+.resize-handle.handle-ne {
+  transform: translate(50%, -50%);
+}
+
+.resize-handle.handle-sw {
+  transform: translate(-50%, 50%);
+}
+
+.resize-handle.handle-se {
+  transform: translate(50%, 50%);
+}
+
+.resize-handle.handle-n {
+  transform: translate(-50%, -50%);
+}
+
+.resize-handle.handle-s {
+  transform: translate(-50%, 50%);
+}
+
+.resize-handle.handle-e {
+  transform: translate(50%, -50%);
+}
+
+.resize-handle.handle-w {
+  transform: translate(-50%, -50%);
+}
+
+.selection-close {
+  background: linear-gradient(to bottom, #f4e4a8, #e8d58f);
+  border: 2px solid #c9b675;
+  border-radius: 8px;
+  color: #402f2d;
+  box-shadow: 0 2px 0 rgba(197, 193, 176, 0.6);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.selection-close:hover {
+  transform: scale(1.05);
+  border-color: #bdaa6b;
+  box-shadow: 0 3px 0 rgba(197, 193, 176, 0.6);
+}
+
+.selection-close:active {
+  transform: scale(0.96);
+}
+
+.font-dropdown {
+  position: relative;
+}
+
+.font-dropdown-button {
+  min-width: 140px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #fffaf0;
+  border: 2px solid #c5c1b0;
+  color: #230401;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  height: 30px;
+}
+
+.font-dropdown-button:hover {
+  transform: translateY(-1px);
+  background: #fff8e1;
+}
+
+.font-dropdown-button:active {
+  transform: translateY(0);
+}
+
+.font-dropdown-list {
+  position: absolute;
+  top: 100%;
+  margin-top: 18px;
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  padding: 8px 4px 8px 8px;
+  background: #fffaf0;
+  border: 2px solid #c5c1b0;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  z-index: 400;
+  animation: dropdown-fade-in 0.2s ease;
+}
+
+.font-dropdown-item {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  text-align: left;
+  color: #230401;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, font-weight 0.15s ease;
+}
+
+.font-dropdown-item:hover {
+  background: #fff8d6;
+}
+
+.font-dropdown-item.selected {
+  background: #ffe274;
+  font-weight: 700;
+}
+
+.font-dropdown-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.font-dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+  border-radius: 2px;
+}
+
+.font-dropdown-list::-webkit-scrollbar-thumb {
+  background: #c5c1b0;
+  border-radius: 2px;
+}
+
+.font-dropdown-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a598;
+}
+
+.sticker-popover {
+  position: absolute;
+   padding: 12px;
+  top: 0;
+  left: 50%;
+  width: var(--sticker-width, 300px);
+  height: var(--page-height, 520px);
+  background: transparent;
+  display: flex;
+  z-index: 200;
+  transform: translateX(
+    calc(-50% - var(--page-half, 200px) - var(--sticker-gap, 14px) - var(--sticker-width, 300px) + var(--sticker-shift, 0px))
+  );
+}
+
+.sticker-popover-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+}
+
+.sticker-popover-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sticker-popover-content {
+  position: relative;
+  z-index: 1;
+  padding: 12px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sticker-popover-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.sticker-popover-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #230401;
+}
+
+.sticker-popover-subtitle {
+  font-size: 13px;
+  color: rgba(35, 4, 1, 0.6);
+  margin-bottom: 6px;
+}
+
+.sticker-popover-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 2px solid #c9b675;
+  background: linear-gradient(to bottom, #f4e4a8, #e8d58f);
+  color: #402f2d;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 rgba(197, 193, 176, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sticker-popover-close:hover {
+  transform: scale(1.05);
+}
+
+.sticker-popover-close:active {
+  transform: scale(0.95);
+}
+
+.sticker-popover-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sticker-popover-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.sticker-filter-chip {
+  border: 2px solid #c5c1b0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  background: #fffaf0;
+  color: #230401;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 0 rgba(197, 193, 176, 0.6);
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.sticker-filter-chip:hover {
+  background: #fff8e1;
+  border-color: #b1ad9c;
+  transform: translateY(-1px);
+}
+
+.sticker-filter-chip:active {
+  transform: scale(0.98);
+}
+
+.sticker-filter-chip-active {
+  background: linear-gradient(to bottom, #f4e4a8, #e8d58f);
+  color: #402f2d;
+  font-weight: 700;
+  border-color: #c9b675;
+  box-shadow: 0 3px 0 rgba(197, 193, 176, 0.6);
+}
+
+.sticker-popover-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sticker-popover-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sticker-popover-body::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 2px;
+}
+
+.sticker-popover-body::-webkit-scrollbar-thumb {
+  background: #c5c1b0;
+  border-radius: 2px;
+}
+
+.sticker-popover-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a598;
+}
+
+.sticker-popover-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 6px;
+}
+
+.sticker-popover-item {
+  background: #fff4cc;
+  border-radius: 7px;
+  border: none;
+  padding: 8px;
+  aspect-ratio: 1 / 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  cursor: pointer;
+}
+
+.sticker-popover-item:hover {
+  transform: scale(1.06);
+  background: #fff8d6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sticker-popover-item-active {
+  outline: 2px solid #ffe274;
+}
+
+.sticker-popover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.sticker-popover-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: rgba(35, 4, 1, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(35, 4, 1, 0.6);
+}
+
+
+@keyframes dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .font-dropdown-button {
+    min-width: 140px;
+    padding: 8px 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .font-dropdown-button {
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 }
 
 /* (optional wrapper if you use it) */
@@ -179,7 +602,7 @@ body {
 
 .cover, .back-cover {
   background-color: var(--cover-color);
-  background-image: linear-gradient(135deg, #2b1a14 0%, #4a2b1f 45%, #2b1a14 100%);
+  background-image: linear-gradient(135deg, #b8577c 0%, #cf7197 45%, #a64f73 100%);
   width: calc(var(--page-width) + var(--cover-bleed) * 2);
   height: calc(var(--page-height) + var(--cover-bleed) * 2);
   border-radius: 0 15px 15px 0;
@@ -367,6 +790,7 @@ body {
   padding: 0;
   opacity: 1;
   transition: opacity var(--content-fade-duration) ease;
+  overflow: hidden;
 
   /* 🔴 THIS IS THE IMPORTANT FIX */
   backface-visibility: hidden;
@@ -481,7 +905,7 @@ body {
   outline: none;
   background: transparent;
   color: #000;
-  font-family: "Poppins", sans-serif;
+  font-family: "Baloo Thambi 2", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -490,6 +914,7 @@ body {
   padding: 0;
   box-sizing: border-box;
   cursor: text;
+  overflow: hidden;
 
   /* 🔴 CRITICAL FIX */
   backface-visibility: hidden;
@@ -513,6 +938,7 @@ body {
   pointer-events: none;
   opacity: 1;
   transition: opacity var(--content-fade-duration) ease;
+  overflow: hidden;
 }
 
 .book.flipping .left-overlay {
@@ -525,19 +951,25 @@ body {
   width: 100%;
 }
 
+.page-editor img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 /* book arrows (if you later add them) */
 .book .book-nav {
   z-index: 3000;
-  color: #1e2a35;
+  color: #3b2a28;
   top: 50%;
   bottom: auto;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  background: #fffaf0;
+  border: 2px solid #4a3c3a;
+  box-shadow: 0 2px 0 rgba(197, 193, 176, 0.6);
 }
 
 .book .book-nav.prev {
@@ -556,7 +988,7 @@ body {
 @media (min-width: 768px) {
   :root {
     --page-width: clamp(300px, 34vw, 420px);
-    --book-height: clamp(560px, 78vh, 680px);
+    --book-height: clamp(420px, 70vh, 560px);
     --inner-gutter: 2.1rem;
     --outer-gutter: 1.2rem;
   }
@@ -565,7 +997,7 @@ body {
 @media (min-width: 1024px) {
   :root {
     --page-width: clamp(340px, 28vw, 460px);
-    --book-height: clamp(620px, 72vh, 760px);
+    --book-height: clamp(440px, 68vh, 600px);
     --inner-gutter: 2.4rem;
     --outer-gutter: 1.3rem;
   }

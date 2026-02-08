@@ -4,42 +4,414 @@ import ZoomEditMode from "./ZoomEditMode";
 
 const STORAGE_KEY = "diary-pages-v1";
 const DEFAULT_PAGES = 3;
-const DEFAULT_FONT = '"Poppins", sans-serif';
+const DEFAULT_FONT = '"Baloo Thambi 2", sans-serif';
 const DEFAULT_COLOR = "#000000";
 const DEFAULT_TEXT_SIZE = 16;
 const MIN_TEXT_SIZE = 10;
 const MAX_TEXT_SIZE = 72;
 const PAGE_BOUNDS = { width: 400, height: 500 };
-const DELETE_ANIM_MS = 320;
+const DELETE_ANIM_MS = 280;
 
 const TOOL_KEYS = {
   SELECT: "select",
   TEXT: "text",
+  MIC: "mic",
   STICKER: "sticker",
   IMAGE: "image",
 };
 
+const FONT_OPTIONS = [
+  "Srbija Sans",
+  "Baloo Thambi 2",
+  "Inter",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Poppins",
+  "Montserrat",
+  "Nunito",
+  "Raleway",
+  "Work Sans",
+  "Fira Sans",
+  "Source Sans Pro",
+  "PT Sans",
+  "Ubuntu",
+  "Mulish",
+  "Manrope",
+  "Rubik",
+  "DM Sans",
+  "Quicksand",
+  "Karla",
+  "Barlow",
+  "Heebo",
+  "Assistant",
+  "Arimo",
+  "Cabin",
+  "Hind",
+  "Noto Sans",
+  "Titillium Web",
+  "Oxygen",
+  "Varela Round",
+  "Merriweather",
+  "Playfair Display",
+  "Libre Baskerville",
+  "Crimson Text",
+  "Cormorant Garamond",
+  "EB Garamond",
+  "Spectral",
+  "Alegreya",
+  "Alegreya SC",
+  "Lora",
+  "PT Serif",
+  "Bitter",
+  "Cardo",
+  "Zilla Slab",
+  "Vollkorn",
+  "Old Standard TT",
+  "Domine",
+  "Bebas Neue",
+  "Oswald",
+  "Anton",
+  "Abril Fatface",
+  "Lobster",
+  "Cinzel",
+  "Alfa Slab One",
+  "Permanent Marker",
+  "Luckiest Guy",
+  "Chewy",
+  "Fredoka",
+  "Baloo 2",
+  "Righteous",
+  "Comfortaa",
+  "Teko",
+  "Acme",
+  "Bangers",
+  "Kanit",
+  "Passion One",
+  "Changa One",
+  "Kirang Haerang",
+  "Pacifico",
+  "Dancing Script",
+  "Caveat",
+  "Indie Flower",
+  "Patrick Hand",
+  "Shadows Into Light",
+  "Gloria Hallelujah",
+  "Satisfy",
+  "Sacramento",
+  "Great Vibes",
+  "Allura",
+  "Handlee",
+  "Kaushan Script",
+  "Courgette",
+  "Marck Script",
+  "Bad Script",
+  "Yellowtail",
+  "Cookie",
+  "Josefin Sans",
+  "Poiret One",
+  "Prata",
+  "Italiana",
+  "Cormorant",
+  "Cinzel Decorative",
+  "Playball",
+  "Parisienne",
+  "Petit Formal Script",
+  "Special Elite",
+  "Monoton",
+  "Rock Salt",
+  "Fredericka the Great",
+  "Press Start 2P",
+  "VT323",
+  "Pixelify Sans",
+  "Pixellify Sans",
+  "Orbitron",
+  "Audiowide",
+  "Black Ops One",
+  "Fira Code",
+  "Source Code Pro",
+  "JetBrains Mono",
+  "Inconsolata",
+  "IBM Plex Mono",
+  "Space Mono",
+  "Courier Prime",
+  "Cousine",
+  "Noto Sans Arabic",
+  "Noto Naskh Arabic",
+  "Cairo",
+  "Amiri",
+  "Tajawal",
+  "Almarai",
+  "Lateef",
+  "Scheherazade New",
+  "Comic Neue",
+  "Bubblegum Sans",
+  "Sniglet",
+  "Cherry Cream Soda",
+  "Boogaloo",
+  "Gochi Hand",
+  "Arial",
+  "Verdana",
+  "Tahoma",
+  "Trebuchet MS",
+  "Georgia",
+  "Times New Roman",
+  "Courier New",
+  "Segoe UI",
+  "System UI",
+];
+
+
 const STICKERS = [
-  {
-    id: "star",
-    label: "Star",
-    src: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpolygon points='40,6 50,30 76,30 54,46 62,72 40,58 18,72 26,46 4,30 30,30' fill='%23f7d154'/%3E%3C/svg%3E",
-  },
-  {
-    id: "heart",
-    label: "Heart",
-    src: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M40 68 L12 40 C3 31 6 16 20 14 C29 13 36 19 40 25 C44 19 51 13 60 14 C74 16 77 31 68 40 Z' fill='%23ff6b6b'/%3E%3C/svg%3E",
-  },
-  {
-    id: "smile",
-    label: "Smile",
-    src: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='30' fill='%23ffe18a'/%3E%3Ccircle cx='30' cy='35' r='4' fill='%23333333'/%3E%3Ccircle cx='50' cy='35' r='4' fill='%23333333'/%3E%3Cpath d='M28 48 Q40 60 52 48' stroke='%23333333' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E",
-  },
-  {
-    id: "flower",
-    label: "Flower",
-    src: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='10' fill='%23ffd166'/%3E%3Ccircle cx='40' cy='12' r='12' fill='%2390caf9'/%3E%3Ccircle cx='40' cy='68' r='12' fill='%2390caf9'/%3E%3Ccircle cx='12' cy='40' r='12' fill='%2390caf9'/%3E%3Ccircle cx='68' cy='40' r='12' fill='%2390caf9'/%3E%3Ccircle cx='20' cy='20' r='10' fill='%2390caf9'/%3E%3Ccircle cx='60' cy='20' r='10' fill='%2390caf9'/%3E%3Ccircle cx='20' cy='60' r='10' fill='%2390caf9'/%3E%3Ccircle cx='60' cy='60' r='10' fill='%2390caf9'/%3E%3C/svg%3E",
-  },
+  { id: "sticker-1", label: "Paper 01", category: "Paper", src: "/assets/paper/Paper%2001.png" },
+  { id: "sticker-2", label: "Paper 02", category: "Paper", src: "/assets/paper/Paper%2002.png" },
+  { id: "sticker-3", label: "Paper 03", category: "Paper", src: "/assets/paper/Paper%2003.png" },
+  { id: "sticker-4", label: "Paper 04", category: "Paper", src: "/assets/paper/Paper%2004.png" },
+  { id: "sticker-5", label: "Paper 05", category: "Paper", src: "/assets/paper/Paper%2005.png" },
+  { id: "sticker-6", label: "Paper 06", category: "Paper", src: "/assets/paper/Paper%2006.png" },
+  { id: "sticker-7", label: "Paper 07", category: "Paper", src: "/assets/paper/Paper%2007.png" },
+  { id: "sticker-8", label: "Paper 08", category: "Paper", src: "/assets/paper/Paper%2008.png" },
+  { id: "sticker-9", label: "Paper 09", category: "Paper", src: "/assets/paper/Paper%2009.png" },
+  { id: "sticker-10", label: "Paper 10", category: "Paper", src: "/assets/paper/Paper%2010.png" },
+  { id: "sticker-11", label: "Paper 11", category: "Paper", src: "/assets/paper/Paper%2011.png" },
+  { id: "sticker-12", label: "Paper 12", category: "Paper", src: "/assets/paper/Paper%2012.png" },
+  { id: "sticker-13", label: "Paper 13", category: "Paper", src: "/assets/paper/Paper%2013.png" },
+  { id: "sticker-14", label: "Paper 14", category: "Paper", src: "/assets/paper/Paper%2014.png" },
+  { id: "sticker-15", label: "Paper 15", category: "Paper", src: "/assets/paper/Paper%2015.png" },
+  { id: "sticker-16", label: "Paper 16", category: "Paper", src: "/assets/paper/Paper%2016.png" },
+  { id: "sticker-17", label: "Paper 17", category: "Paper", src: "/assets/paper/Paper%2017.png" },
+  { id: "sticker-18", label: "Paper 18", category: "Paper", src: "/assets/paper/Paper%2018.png" },
+  { id: "sticker-19", label: "Paper 19", category: "Paper", src: "/assets/paper/Paper%2019.png" },
+  { id: "sticker-20", label: "Paper 20", category: "Paper", src: "/assets/paper/Paper%2020.png" },
+  { id: "sticker-21", label: "Paper 21", category: "Paper", src: "/assets/paper/Paper%2021.png" },
+  { id: "sticker-22", label: "Paper 22", category: "Paper", src: "/assets/paper/Paper%2022.png" },
+  { id: "sticker-23", label: "Paper 23", category: "Paper", src: "/assets/paper/Paper%2023.png" },
+  { id: "sticker-24", label: "Paper 24", category: "Paper", src: "/assets/paper/Paper%2024.png" },
+  { id: "sticker-25", label: "Paper 25", category: "Paper", src: "/assets/paper/Paper%2025.png" },
+  { id: "sticker-26", label: "Paper 26", category: "Paper", src: "/assets/paper/Paper%2026.png" },
+  { id: "sticker-27", label: "Paper 27", category: "Paper", src: "/assets/paper/Paper%2027.png" },
+  { id: "sticker-28", label: "Paper 28", category: "Paper", src: "/assets/paper/Paper%2028.png" },
+  { id: "sticker-29", label: "Paper 29", category: "Paper", src: "/assets/paper/Paper%2029.png" },
+  { id: "sticker-30", label: "Paper 30", category: "Paper", src: "/assets/paper/Paper%2030.png" },
+  { id: "sticker-31", label: "Paper 31", category: "Paper", src: "/assets/paper/Paper%2031.png" },
+  { id: "sticker-32", label: "Paper 32", category: "Paper", src: "/assets/paper/Paper%2032.png" },
+  { id: "sticker-33", label: "Paper 33", category: "Paper", src: "/assets/paper/Paper%2033.png" },
+  { id: "sticker-34", label: "Paper 34", category: "Paper", src: "/assets/paper/Paper%2034.png" },
+  { id: "sticker-35", label: "Paper 35", category: "Paper", src: "/assets/paper/Paper%2035.png" },
+  { id: "sticker-36", label: "Paper 36", category: "Paper", src: "/assets/paper/Paper%2036.png" },
+  { id: "sticker-37", label: "Paper 37", category: "Paper", src: "/assets/paper/Paper%2037.png" },
+  { id: "sticker-38", label: "Paper 38", category: "Paper", src: "/assets/paper/Paper%2038.png" },
+  { id: "sticker-39", label: "Paper 39", category: "Paper", src: "/assets/paper/Paper%2039.png" },
+  { id: "sticker-40", label: "Paper 40", category: "Paper", src: "/assets/paper/Paper%2040.png" },
+  { id: "sticker-41", label: "Paper 41", category: "Paper", src: "/assets/paper/Paper%2041.png" },
+  { id: "sticker-42", label: "Paper 42", category: "Paper", src: "/assets/paper/Paper%2042.png" },
+  { id: "sticker-43", label: "Paper 43", category: "Paper", src: "/assets/paper/Paper%2043.png" },
+  { id: "sticker-44", label: "Paper 44", category: "Paper", src: "/assets/paper/Paper%2044.png" },
+  { id: "sticker-45", label: "Paper 45", category: "Paper", src: "/assets/paper/Paper%2045.png" },
+  { id: "sticker-46", label: "Paper 46", category: "Paper", src: "/assets/paper/Paper%2046.png" },
+  { id: "sticker-47", label: "Paper 47", category: "Paper", src: "/assets/paper/Paper%2047.png" },
+  { id: "sticker-48", label: "Paper 48", category: "Paper", src: "/assets/paper/Paper%2048.png" },
+  { id: "sticker-49", label: "Paper 49", category: "Paper", src: "/assets/paper/Paper%2049.png" },
+  { id: "sticker-50", label: "Paper 50", category: "Paper", src: "/assets/paper/Paper%2050.png" },
+  { id: "sticker-51", label: "Scotch Tape 01", category: "Paper", src: "/assets/paper/Scotch%20Tape%2001.png" },
+  { id: "sticker-52", label: "Scotch Tape 02", category: "Paper", src: "/assets/paper/Scotch%20Tape%2002.png" },
+  { id: "sticker-53", label: "Scotch Tape 03", category: "Paper", src: "/assets/paper/Scotch%20Tape%2003.png" },
+  { id: "sticker-54", label: "Scotch Tape 04", category: "Paper", src: "/assets/paper/Scotch%20Tape%2004.png" },
+  { id: "sticker-55", label: "Scotch Tape 05", category: "Paper", src: "/assets/paper/Scotch%20Tape%2005.png" },
+  { id: "sticker-56", label: "Scotch Tape 06", category: "Paper", src: "/assets/paper/Scotch%20Tape%2006.png" },
+  { id: "sticker-57", label: "Scotch Tape 07", category: "Paper", src: "/assets/paper/Scotch%20Tape%2007.png" },
+  { id: "sticker-58", label: "Scotch Tape 08", category: "Paper", src: "/assets/paper/Scotch%20Tape%2008.png" },
+  { id: "sticker-59", label: "Scotch Tape 09", category: "Paper", src: "/assets/paper/Scotch%20Tape%2009.png" },
+  { id: "sticker-60", label: "Scotch Tape 10", category: "Paper", src: "/assets/paper/Scotch%20Tape%2010.png" },
+  { id: "sticker-61", label: "Scotch Tape 11", category: "Paper", src: "/assets/paper/Scotch%20Tape%2011.png" },
+  { id: "sticker-62", label: "Scotch Tape 12", category: "Paper", src: "/assets/paper/Scotch%20Tape%2012.png" },
+  { id: "sticker-63", label: "Scotch Tape 16", category: "Paper", src: "/assets/paper/Scotch%20Tape%2016.png" },
+  { id: "sticker-64", label: "Зажим 1", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%201.png" },
+  { id: "sticker-65", label: "Зажим 2", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%202.png" },
+  { id: "sticker-66", label: "Зажим 3", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%203.png" },
+  { id: "sticker-67", label: "Зажим 4", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%204.png" },
+  { id: "sticker-68", label: "Зажим 5", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%205.png" },
+  { id: "sticker-69", label: "Зажим 6", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%206.png" },
+  { id: "sticker-70", label: "Зажим 7", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%207.png" },
+  { id: "sticker-71", label: "Зажим 8", category: "Paper", src: "/assets/paper/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%208.png" },
+  { id: "sticker-72", label: "Кнопка 1", category: "Paper", src: "/assets/paper/%D0%9A%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0%201.png" },
+  { id: "sticker-73", label: "Кнопка 2", category: "Paper", src: "/assets/paper/%D0%9A%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0%202.png" },
+  { id: "sticker-74", label: "Кнопка 3", category: "Paper", src: "/assets/paper/%D0%9A%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0%203.png" },
+  { id: "sticker-75", label: "Стикер 1", category: "Paper", src: "/assets/paper/%D0%A1%D1%82%D0%B8%D0%BA%D0%B5%D1%80%201.png" },
+  { id: "sticker-76", label: "Стикер 2", category: "Paper", src: "/assets/paper/%D0%A1%D1%82%D0%B8%D0%BA%D0%B5%D1%80%202.png" },
+  { id: "sticker-77", label: "Стикер 3", category: "Paper", src: "/assets/paper/%D0%A1%D1%82%D0%B8%D0%BA%D0%B5%D1%80%203.png" },
+  { id: "sticker-78", label: "Стикер 4", category: "Paper", src: "/assets/paper/%D0%A1%D1%82%D0%B8%D0%BA%D0%B5%D1%80%204.png" },
+  { id: "sticker-79", label: "Стикер 5", category: "Paper", src: "/assets/paper/%D0%A1%D1%82%D0%B8%D0%BA%D0%B5%D1%80%205.png" },
+  { id: "sticker-80", label: "02", category: "Vintage", src: "/assets/vintage/02.png" },
+  { id: "sticker-81", label: "03", category: "Vintage", src: "/assets/vintage/03.png" },
+  { id: "sticker-82", label: "04", category: "Vintage", src: "/assets/vintage/04.png" },
+  { id: "sticker-83", label: "05", category: "Vintage", src: "/assets/vintage/05.png" },
+  { id: "sticker-84", label: "06", category: "Vintage", src: "/assets/vintage/06.png" },
+  { id: "sticker-85", label: "07", category: "Vintage", src: "/assets/vintage/07.png" },
+  { id: "sticker-86", label: "08", category: "Vintage", src: "/assets/vintage/08.png" },
+  { id: "sticker-87", label: "09", category: "Vintage", src: "/assets/vintage/09.png" },
+  { id: "sticker-88", label: "10", category: "Vintage", src: "/assets/vintage/10.png" },
+  { id: "sticker-89", label: "11", category: "Vintage", src: "/assets/vintage/11.png" },
+  { id: "sticker-90", label: "12", category: "Vintage", src: "/assets/vintage/12.png" },
+  { id: "sticker-91", label: "13", category: "Vintage", src: "/assets/vintage/13.png" },
+  { id: "sticker-92", label: "14", category: "Vintage", src: "/assets/vintage/14.png" },
+  { id: "sticker-93", label: "15", category: "Vintage", src: "/assets/vintage/15.png" },
+  { id: "sticker-94", label: "16", category: "Vintage", src: "/assets/vintage/16.png" },
+  { id: "sticker-95", label: "17", category: "Vintage", src: "/assets/vintage/17.png" },
+  { id: "sticker-96", label: "18", category: "Vintage", src: "/assets/vintage/18.png" },
+  { id: "sticker-97", label: "19", category: "Vintage", src: "/assets/vintage/19.png" },
+  { id: "sticker-98", label: "20", category: "Vintage", src: "/assets/vintage/20.png" },
+  { id: "sticker-99", label: "21", category: "Vintage", src: "/assets/vintage/21.png" },
+  { id: "sticker-100", label: "22", category: "Vintage", src: "/assets/vintage/22.png" },
+  { id: "sticker-101", label: "23", category: "Vintage", src: "/assets/vintage/23.png" },
+  { id: "sticker-102", label: "24", category: "Vintage", src: "/assets/vintage/24.png" },
+  { id: "sticker-103", label: "25", category: "Vintage", src: "/assets/vintage/25.png" },
+  { id: "sticker-104", label: "26", category: "Vintage", src: "/assets/vintage/26.png" },
+  { id: "sticker-105", label: "27", category: "Vintage", src: "/assets/vintage/27.png" },
+  { id: "sticker-106", label: "28", category: "Vintage", src: "/assets/vintage/28.png" },
+  { id: "sticker-107", label: "29", category: "Vintage", src: "/assets/vintage/29.png" },
+  { id: "sticker-108", label: "30", category: "Vintage", src: "/assets/vintage/30.png" },
+  { id: "sticker-109", label: "31", category: "Vintage", src: "/assets/vintage/31.png" },
+  { id: "sticker-110", label: "32", category: "Vintage", src: "/assets/vintage/32.png" },
+  { id: "sticker-111", label: "33", category: "Vintage", src: "/assets/vintage/33.png" },
+  { id: "sticker-112", label: "34", category: "Vintage", src: "/assets/vintage/34.png" },
+  { id: "sticker-113", label: "35 1", category: "Vintage", src: "/assets/vintage/35%201.png" },
+  { id: "sticker-114", label: "6490e7eb-6231-466f-9416-298c59982d6c 1", category: "Vintage", src: "/assets/vintage/6490e7eb-6231-466f-9416-298c59982d6c%201.png" },
+  { id: "sticker-115", label: "Зажим 8", category: "Vintage", src: "/assets/vintage/%D0%97%D0%B0%D0%B6%D0%B8%D0%BC%208.png" },
+  { id: "sticker-116", label: "image 43", category: "Flowers", src: "/assets/flowers/image%2043.png" },
+  { id: "sticker-117", label: "image 44", category: "Flowers", src: "/assets/flowers/image%2044.png" },
+  { id: "sticker-118", label: "image 45", category: "Flowers", src: "/assets/flowers/image%2045.png" },
+  { id: "sticker-119", label: "image 46", category: "Flowers", src: "/assets/flowers/image%2046.png" },
+  { id: "sticker-120", label: "image 47", category: "Flowers", src: "/assets/flowers/image%2047.png" },
+  { id: "sticker-121", label: "image 48", category: "Flowers", src: "/assets/flowers/image%2048.png" },
+  { id: "sticker-122", label: "image 49", category: "Flowers", src: "/assets/flowers/image%2049.png" },
+  { id: "sticker-123", label: "image 50", category: "Flowers", src: "/assets/flowers/image%2050.png" },
+  { id: "sticker-124", label: "image 51", category: "Flowers", src: "/assets/flowers/image%2051.png" },
+  { id: "sticker-125", label: "image 34", category: "G Style", src: "/assets/gstyle/image%2034.png" },
+  { id: "sticker-126", label: "image 35", category: "G Style", src: "/assets/gstyle/image%2035.png" },
+  { id: "sticker-127", label: "image 36", category: "G Style", src: "/assets/gstyle/image%2036.png" },
+  { id: "sticker-128", label: "image 37", category: "G Style", src: "/assets/gstyle/image%2037.png" },
+  { id: "sticker-129", label: "image 38", category: "G Style", src: "/assets/gstyle/image%2038.png" },
+  { id: "sticker-130", label: "image 39", category: "G Style", src: "/assets/gstyle/image%2039.png" },
+  { id: "sticker-131", label: "image 40", category: "G Style", src: "/assets/gstyle/image%2040.png" },
+  { id: "sticker-132", label: "image 41", category: "G Style", src: "/assets/gstyle/image%2041.png" },
+  { id: "sticker-133", label: "image 42", category: "G Style", src: "/assets/gstyle/image%2042.png" },
+  { id: "sticker-134", label: "image 22", category: "Duck", src: "/assets/duck/image%2022.png" },
+  { id: "sticker-135", label: "image 23", category: "Duck", src: "/assets/duck/image%2023.png" },
+  { id: "sticker-136", label: "image 24", category: "Duck", src: "/assets/duck/image%2024.png" },
+  { id: "sticker-137", label: "image 26", category: "Duck", src: "/assets/duck/image%2026.png" },
+  { id: "sticker-138", label: "image 52", category: "Duck", src: "/assets/duck/image%2052.png" },
+  { id: "sticker-139", label: "image 53", category: "Duck", src: "/assets/duck/image%2053.png" },
+  { id: "sticker-140", label: "image 54", category: "Duck", src: "/assets/duck/image%2054.png" },
+  { id: "sticker-141", label: "image 56", category: "Duck", src: "/assets/duck/image%2056.png" },
+  { id: "sticker-142", label: "image 57", category: "Pumpkin", src: "/assets/pumpkin/image%2057.png" },
+  { id: "sticker-143", label: "image 58", category: "Pumpkin", src: "/assets/pumpkin/image%2058.png" },
+  { id: "sticker-144", label: "image 59", category: "Pumpkin", src: "/assets/pumpkin/image%2059.png" },
+  { id: "sticker-145", label: "image 60", category: "Pumpkin", src: "/assets/pumpkin/image%2060.png" },
+  { id: "sticker-146", label: "thumbnail_large-1", category: "Letters", src: "/assets/letters/thumbnail_large-1.png" },
+  { id: "sticker-147", label: "tl(1)-1", category: "Letters", src: "/assets/letters/tl%281%29-1.png" },
+  { id: "sticker-148", label: "tl(1)-2", category: "Letters", src: "/assets/letters/tl%281%29-2.png" },
+  { id: "sticker-149", label: "tl(1)", category: "Letters", src: "/assets/letters/tl%281%29.png" },
+  { id: "sticker-150", label: "tl(10)-1", category: "Letters", src: "/assets/letters/tl%2810%29-1.png" },
+  { id: "sticker-151", label: "tl(10)-2", category: "Letters", src: "/assets/letters/tl%2810%29-2.png" },
+  { id: "sticker-152", label: "tl(10)", category: "Letters", src: "/assets/letters/tl%2810%29.png" },
+  { id: "sticker-153", label: "tl(11)-1", category: "Letters", src: "/assets/letters/tl%2811%29-1.png" },
+  { id: "sticker-154", label: "tl(11)-2", category: "Letters", src: "/assets/letters/tl%2811%29-2.png" },
+  { id: "sticker-155", label: "tl(11)", category: "Letters", src: "/assets/letters/tl%2811%29.png" },
+  { id: "sticker-156", label: "tl(12)-1", category: "Letters", src: "/assets/letters/tl%2812%29-1.png" },
+  { id: "sticker-157", label: "tl(12)-2", category: "Letters", src: "/assets/letters/tl%2812%29-2.png" },
+  { id: "sticker-158", label: "tl(12)", category: "Letters", src: "/assets/letters/tl%2812%29.png" },
+  { id: "sticker-159", label: "tl(13)-1", category: "Letters", src: "/assets/letters/tl%2813%29-1.png" },
+  { id: "sticker-160", label: "tl(13)-2", category: "Letters", src: "/assets/letters/tl%2813%29-2.png" },
+  { id: "sticker-161", label: "tl(13)", category: "Letters", src: "/assets/letters/tl%2813%29.png" },
+  { id: "sticker-162", label: "tl(14)-1", category: "Letters", src: "/assets/letters/tl%2814%29-1.png" },
+  { id: "sticker-163", label: "tl(14)-2", category: "Letters", src: "/assets/letters/tl%2814%29-2.png" },
+  { id: "sticker-164", label: "tl(14)", category: "Letters", src: "/assets/letters/tl%2814%29.png" },
+  { id: "sticker-165", label: "tl(15)-1", category: "Letters", src: "/assets/letters/tl%2815%29-1.png" },
+  { id: "sticker-166", label: "tl(15)-2", category: "Letters", src: "/assets/letters/tl%2815%29-2.png" },
+  { id: "sticker-167", label: "tl(15)-3", category: "Letters", src: "/assets/letters/tl%2815%29-3.png" },
+  { id: "sticker-168", label: "tl(15)", category: "Letters", src: "/assets/letters/tl%2815%29.png" },
+  { id: "sticker-169", label: "tl(16)-1", category: "Letters", src: "/assets/letters/tl%2816%29-1.png" },
+  { id: "sticker-170", label: "tl(16)-2", category: "Letters", src: "/assets/letters/tl%2816%29-2.png" },
+  { id: "sticker-171", label: "tl(16)", category: "Letters", src: "/assets/letters/tl%2816%29.png" },
+  { id: "sticker-172", label: "tl(17)-1", category: "Letters", src: "/assets/letters/tl%2817%29-1.png" },
+  { id: "sticker-173", label: "tl(17)-2", category: "Letters", src: "/assets/letters/tl%2817%29-2.png" },
+  { id: "sticker-174", label: "tl(17)", category: "Letters", src: "/assets/letters/tl%2817%29.png" },
+  { id: "sticker-175", label: "tl(18)-1", category: "Letters", src: "/assets/letters/tl%2818%29-1.png" },
+  { id: "sticker-176", label: "tl(18)", category: "Letters", src: "/assets/letters/tl%2818%29.png" },
+  { id: "sticker-177", label: "tl(19)-1", category: "Letters", src: "/assets/letters/tl%2819%29-1.png" },
+  { id: "sticker-178", label: "tl(19)-2", category: "Letters", src: "/assets/letters/tl%2819%29-2.png" },
+  { id: "sticker-179", label: "tl(19)-3", category: "Letters", src: "/assets/letters/tl%2819%29-3.png" },
+  { id: "sticker-180", label: "tl(19)", category: "Letters", src: "/assets/letters/tl%2819%29.png" },
+  { id: "sticker-181", label: "tl(2)-1", category: "Letters", src: "/assets/letters/tl%282%29-1.png" },
+  { id: "sticker-182", label: "tl(2)-2", category: "Letters", src: "/assets/letters/tl%282%29-2.png" },
+  { id: "sticker-183", label: "tl(2)", category: "Letters", src: "/assets/letters/tl%282%29.png" },
+  { id: "sticker-184", label: "tl(20)-1", category: "Letters", src: "/assets/letters/tl%2820%29-1.png" },
+  { id: "sticker-185", label: "tl(20)-2", category: "Letters", src: "/assets/letters/tl%2820%29-2.png" },
+  { id: "sticker-186", label: "tl(20)-3", category: "Letters", src: "/assets/letters/tl%2820%29-3.png" },
+  { id: "sticker-187", label: "tl(20)", category: "Letters", src: "/assets/letters/tl%2820%29.png" },
+  { id: "sticker-188", label: "tl(21)-1", category: "Letters", src: "/assets/letters/tl%2821%29-1.png" },
+  { id: "sticker-189", label: "tl(21)-2", category: "Letters", src: "/assets/letters/tl%2821%29-2.png" },
+  { id: "sticker-190", label: "tl(21)", category: "Letters", src: "/assets/letters/tl%2821%29.png" },
+  { id: "sticker-191", label: "tl(22)-1", category: "Letters", src: "/assets/letters/tl%2822%29-1.png" },
+  { id: "sticker-192", label: "tl(22)", category: "Letters", src: "/assets/letters/tl%2822%29.png" },
+  { id: "sticker-193", label: "tl(23)-1", category: "Letters", src: "/assets/letters/tl%2823%29-1.png" },
+  { id: "sticker-194", label: "tl(23)-2", category: "Letters", src: "/assets/letters/tl%2823%29-2.png" },
+  { id: "sticker-195", label: "tl(23)", category: "Letters", src: "/assets/letters/tl%2823%29.png" },
+  { id: "sticker-196", label: "tl(24)-1", category: "Letters", src: "/assets/letters/tl%2824%29-1.png" },
+  { id: "sticker-197", label: "tl(24)-2", category: "Letters", src: "/assets/letters/tl%2824%29-2.png" },
+  { id: "sticker-198", label: "tl(24)", category: "Letters", src: "/assets/letters/tl%2824%29.png" },
+  { id: "sticker-199", label: "tl(25)-1", category: "Letters", src: "/assets/letters/tl%2825%29-1.png" },
+  { id: "sticker-200", label: "tl(25)-2", category: "Letters", src: "/assets/letters/tl%2825%29-2.png" },
+  { id: "sticker-201", label: "tl(25)", category: "Letters", src: "/assets/letters/tl%2825%29.png" },
+  { id: "sticker-202", label: "tl(26)-1", category: "Letters", src: "/assets/letters/tl%2826%29-1.png" },
+  { id: "sticker-203", label: "tl(26)-2", category: "Letters", src: "/assets/letters/tl%2826%29-2.png" },
+  { id: "sticker-204", label: "tl(26)", category: "Letters", src: "/assets/letters/tl%2826%29.png" },
+  { id: "sticker-205", label: "tl(27)-1", category: "Letters", src: "/assets/letters/tl%2827%29-1.png" },
+  { id: "sticker-206", label: "tl(27)-2", category: "Letters", src: "/assets/letters/tl%2827%29-2.png" },
+  { id: "sticker-207", label: "tl(27)", category: "Letters", src: "/assets/letters/tl%2827%29.png" },
+  { id: "sticker-208", label: "tl(28)-1", category: "Letters", src: "/assets/letters/tl%2828%29-1.png" },
+  { id: "sticker-209", label: "tl(28)-2", category: "Letters", src: "/assets/letters/tl%2828%29-2.png" },
+  { id: "sticker-210", label: "tl(28)", category: "Letters", src: "/assets/letters/tl%2828%29.png" },
+  { id: "sticker-211", label: "tl(29)-1", category: "Letters", src: "/assets/letters/tl%2829%29-1.png" },
+  { id: "sticker-212", label: "tl(29)-2", category: "Letters", src: "/assets/letters/tl%2829%29-2.png" },
+  { id: "sticker-213", label: "tl(29)-3", category: "Letters", src: "/assets/letters/tl%2829%29-3.png" },
+  { id: "sticker-214", label: "tl(29)", category: "Letters", src: "/assets/letters/tl%2829%29.png" },
+  { id: "sticker-215", label: "tl(3)-1", category: "Letters", src: "/assets/letters/tl%283%29-1.png" },
+  { id: "sticker-216", label: "tl(3)-2", category: "Letters", src: "/assets/letters/tl%283%29-2.png" },
+  { id: "sticker-217", label: "tl(3)", category: "Letters", src: "/assets/letters/tl%283%29.png" },
+  { id: "sticker-218", label: "tl(31)", category: "Letters", src: "/assets/letters/tl%2831%29.png" },
+  { id: "sticker-219", label: "tl(32)", category: "Letters", src: "/assets/letters/tl%2832%29.png" },
+  { id: "sticker-220", label: "tl(33)", category: "Letters", src: "/assets/letters/tl%2833%29.png" },
+  { id: "sticker-221", label: "tl(34)", category: "Letters", src: "/assets/letters/tl%2834%29.png" },
+  { id: "sticker-222", label: "tl(36)", category: "Letters", src: "/assets/letters/tl%2836%29.png" },
+  { id: "sticker-223", label: "tl(37)", category: "Letters", src: "/assets/letters/tl%2837%29.png" },
+  { id: "sticker-224", label: "tl(38)", category: "Letters", src: "/assets/letters/tl%2838%29.png" },
+  { id: "sticker-225", label: "tl(39)", category: "Letters", src: "/assets/letters/tl%2839%29.png" },
+  { id: "sticker-226", label: "tl(4)-1", category: "Letters", src: "/assets/letters/tl%284%29-1.png" },
+  { id: "sticker-227", label: "tl(4)-2", category: "Letters", src: "/assets/letters/tl%284%29-2.png" },
+  { id: "sticker-228", label: "tl(4)", category: "Letters", src: "/assets/letters/tl%284%29.png" },
+  { id: "sticker-229", label: "tl(40)", category: "Letters", src: "/assets/letters/tl%2840%29.png" },
+  { id: "sticker-230", label: "tl(41)", category: "Letters", src: "/assets/letters/tl%2841%29.png" },
+  { id: "sticker-231", label: "tl(42)", category: "Letters", src: "/assets/letters/tl%2842%29.png" },
+  { id: "sticker-232", label: "tl(43)", category: "Letters", src: "/assets/letters/tl%2843%29.png" },
+  { id: "sticker-233", label: "tl(5)-1", category: "Letters", src: "/assets/letters/tl%285%29-1.png" },
+  { id: "sticker-234", label: "tl(5)-2", category: "Letters", src: "/assets/letters/tl%285%29-2.png" },
+  { id: "sticker-235", label: "tl(5)", category: "Letters", src: "/assets/letters/tl%285%29.png" },
+  { id: "sticker-236", label: "tl(6)-1", category: "Letters", src: "/assets/letters/tl%286%29-1.png" },
+  { id: "sticker-237", label: "tl(6)-2", category: "Letters", src: "/assets/letters/tl%286%29-2.png" },
+  { id: "sticker-238", label: "tl(6)", category: "Letters", src: "/assets/letters/tl%286%29.png" },
+  { id: "sticker-239", label: "tl(7)-1", category: "Letters", src: "/assets/letters/tl%287%29-1.png" },
+  { id: "sticker-240", label: "tl(7)-2", category: "Letters", src: "/assets/letters/tl%287%29-2.png" },
+  { id: "sticker-241", label: "tl(7)", category: "Letters", src: "/assets/letters/tl%287%29.png" },
+  { id: "sticker-242", label: "tl(8)-1", category: "Letters", src: "/assets/letters/tl%288%29-1.png" },
+  { id: "sticker-243", label: "tl(8)-2", category: "Letters", src: "/assets/letters/tl%288%29-2.png" },
+  { id: "sticker-244", label: "tl(8)", category: "Letters", src: "/assets/letters/tl%288%29.png" },
+  { id: "sticker-245", label: "tl(9)-1", category: "Letters", src: "/assets/letters/tl%289%29-1.png" },
+  { id: "sticker-246", label: "tl(9)", category: "Letters", src: "/assets/letters/tl%289%29.png" },
+  { id: "sticker-247", label: "tl-1", category: "Letters", src: "/assets/letters/tl-1.png" },
+  { id: "sticker-248", label: "tl-2", category: "Letters", src: "/assets/letters/tl-2.png" },
+  { id: "sticker-249", label: "tl", category: "Letters", src: "/assets/letters/tl.png" },
 ];
 
 const createId = () => {
@@ -74,6 +446,9 @@ const createStickerBlock = ({ x, y, src }) => ({
   src,
 });
 
+const PORTRAIT_FRAME_SRC = "/assets/frame.png";
+const PORTRAIT_FRAME_INSET = { top: 10, right: 10, bottom: 30, left: 10 };
+
 const createImageBlock = ({ x, y, src }) => ({
   id: createId(),
   type: "image",
@@ -82,6 +457,18 @@ const createImageBlock = ({ x, y, src }) => ({
   w: 180,
   h: 140,
   src,
+});
+
+const createFramedImageBlock = ({ x, y, imageSrc, frameSrc, frameInset }) => ({
+  id: createId(),
+  type: "framedImage",
+  x,
+  y,
+  w: 220,
+  h: 280,
+  imageSrc,
+  frameSrc,
+  frameInset,
 });
 
 const createEmptyPage = () => ({
@@ -148,7 +535,7 @@ const loadPages = () => {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-export default function FlipBook() {
+export default function FlipBook({ registerActions, onPageCountChange, onPageInfoChange }) {
   const [pages, setPages] = useState(() => loadPages());
   const [current, setCurrent] = useState(0);
   const [isOpen] = useState(true);
@@ -166,6 +553,8 @@ export default function FlipBook() {
   const [activeTool, setActiveTool] = useState(TOOL_KEYS.TEXT);
   const [selectedSticker, setSelectedSticker] = useState(STICKERS[0]);
   const [pendingImage, setPendingImage] = useState(null);
+  const [pendingFrameImage, setPendingFrameImage] = useState(null);
+  const [uploadMode, setUploadMode] = useState("normal");
   const [fontFamily, setFontFamily] = useState(
     () => localStorage.getItem("tool-font") || DEFAULT_FONT
   );
@@ -181,9 +570,19 @@ export default function FlipBook() {
   const selectedRef = useRef(selectedBlock);
   const [zoomMode, setZoomMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isTextEditing, setIsTextEditing] = useState(false);
+  const [isMicArmed, setIsMicArmed] = useState(false);
+  const [pendingPlacement, setPendingPlacement] = useState(false);
+  const [activeTextId, setActiveTextId] = useState(null);
+  const [stickerFilter, setStickerFilter] = useState("All");
   const shouldListenRef = useRef(false);
   const recognitionRef = useRef(null);
   const speechTargetRef = useRef(null);
+  const [stickerOpen, setStickerOpen] = useState(false);
+  const stickerMenuRef = useRef(null);
+  const uploadInputRef = useRef(null);
+  const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const fontMenuRef = useRef(null);
 
   useEffect(() => {
     const parseDurationMs = (value) => {
@@ -252,12 +651,63 @@ export default function FlipBook() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      stopListening();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isListening) return;
+    const { index, side } = activeRef.current;
+    const blocks = getPageBlocks(index, side);
+    const hasText = blocks.some((block) => block.type === "text");
+    if (!hasText) {
+      disarmMic();
+      setActiveTool(TOOL_KEYS.SELECT);
+      setSelectedBlock(null);
+      setActiveTextId(null);
+    } else if (activeTextId) {
+      const activeBlock = getBlockById(index, side, activeTextId);
+      if (!activeBlock || activeBlock.type !== "text") {
+        disarmMic();
+        setActiveTool(TOOL_KEYS.SELECT);
+        setActiveTextId(null);
+      }
+    }
+  }, [pages, active, isListening, activeTextId]);
+
+  useEffect(() => {
     activeRef.current = active;
   }, [active]);
 
   useEffect(() => {
     selectedRef.current = selectedBlock;
   }, [selectedBlock]);
+
+  useEffect(() => {
+    if (!stickerOpen) return;
+    const handlePointerDown = (event) => {
+      if (!stickerMenuRef.current) return;
+      if (!stickerMenuRef.current.contains(event.target)) {
+        setStickerOpen(false);
+      }
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [stickerOpen]);
+
+  useEffect(() => {
+    if (!showFontDropdown) return;
+    const handlePointerDown = (event) => {
+      if (!fontMenuRef.current) return;
+      if (!fontMenuRef.current.contains(event.target)) {
+        setShowFontDropdown(false);
+      }
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [showFontDropdown]);
+
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pages));
@@ -313,21 +763,46 @@ export default function FlipBook() {
 
   const renderPreviewBlocks = (blocks) =>
     (blocks || []).map((block) => {
-      const width = Number.isFinite(block.w)
+      const rawX = Number.isFinite(block.x) ? block.x : 0;
+      const rawY = Number.isFinite(block.y) ? block.y : 0;
+      const rawWidth = Number.isFinite(block.w)
         ? block.w
         : Number.isFinite(block.width)
           ? block.width
           : 120;
-      const height = Number.isFinite(block.h)
+      const rawHeight = Number.isFinite(block.h)
         ? block.h
         : Number.isFinite(block.height)
           ? block.height
           : 80;
+      const boundsWidth = pageBounds?.width;
+      const boundsHeight = pageBounds?.height;
+
+      const minWidth =
+        block.type === "sticker" ? 30 : block.type === "image" || block.type === "framedImage" ? 50 : 50;
+      const minHeight =
+        block.type === "sticker" ? 30 : block.type === "image" || block.type === "framedImage" ? 50 : 30;
+
+      const safeX = Number.isFinite(boundsWidth)
+        ? Math.max(0, Math.min(rawX, boundsWidth - rawWidth))
+        : rawX;
+      const safeY = Number.isFinite(boundsHeight)
+        ? Math.max(0, Math.min(rawY, boundsHeight - rawHeight))
+        : rawY;
+      const safeWidth =
+        Number.isFinite(boundsWidth)
+          ? Math.max(minWidth, Math.min(rawWidth, boundsWidth - rawX))
+          : rawWidth;
+      const safeHeight =
+        Number.isFinite(boundsHeight)
+          ? Math.max(minHeight, Math.min(rawHeight, boundsHeight - rawY))
+          : rawHeight;
+
       const baseStyle = {
-        left: `${block.x || 0}px`,
-        top: `${block.y || 0}px`,
-        width: `${width}px`,
-        height: `${height}px`,
+        left: `${safeX}px`,
+        top: `${safeY}px`,
+        width: `${safeWidth}px`,
+        height: `${safeHeight}px`,
         position: "absolute",
         pointerEvents: "none",
       };
@@ -351,6 +826,45 @@ export default function FlipBook() {
         );
       }
 
+      if (block.type === "framedImage") {
+        const inset = PORTRAIT_FRAME_INSET;
+        return (
+          <div
+            key={block.id}
+            style={{
+              ...baseStyle,
+              position: "absolute",
+            }}
+          >
+            <div className="relative w-full h-full">
+              <div
+                className="absolute overflow-hidden"
+                style={{
+                  top: `${inset.top}%`,
+                  left: `${inset.left}%`,
+                  right: `${inset.right}%`,
+                  bottom: `${inset.bottom}%`,
+                  background: "#fff",
+                }}
+              >
+                <img
+                  src={block.imageSrc || block.src}
+                  alt="Uploaded"
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                />
+              </div>
+              <img
+                src={block.frameSrc || PORTRAIT_FRAME_SRC}
+                alt="Frame"
+                className="absolute inset-0 w-full h-full pointer-events-none select-none"
+                draggable={false}
+              />
+            </div>
+          </div>
+        );
+      }
+
       return (
         <img
           key={block.id}
@@ -369,12 +883,15 @@ export default function FlipBook() {
     if (!isOpen) return;
     setActive({ index, side });
     setSelectedBlock(null);
+    setIsTextEditing(false);
     setZoomMode(true);
   };
 
   const closeEditMode = () => {
     setZoomMode(false);
     setSelectedBlock(null);
+    setIsTextEditing(false);
+    disarmMic();
   };
 
   const handlePageClick = (index, side) => {
@@ -384,7 +901,6 @@ export default function FlipBook() {
   const flipNext = () => {
     setCurrent((prev) => Math.min(prev + 1, pages.length - 1));
     setIsFlipping(true);
-    setRemoveConfirmOpen(false);
     if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
     flipTimerRef.current = setTimeout(() => {
       setIsFlipping(false);
@@ -394,7 +910,6 @@ export default function FlipBook() {
   const flipPrev = () => {
     setCurrent((prev) => Math.max(prev - 1, 0));
     setIsFlipping(true);
-    setRemoveConfirmOpen(false);
     if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
     flipTimerRef.current = setTimeout(() => {
       setIsFlipping(false);
@@ -407,7 +922,6 @@ export default function FlipBook() {
       const nextIndex = next.length - 1;
       setCurrent(nextIndex);
       setIsFlipping(true);
-      setRemoveConfirmOpen(false);
       if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
       flipTimerRef.current = setTimeout(() => {
         setIsFlipping(false);
@@ -418,7 +932,7 @@ export default function FlipBook() {
 
   const requestRemovePage = () => {
     if (isDeletingPage) return;
-    setRemoveConfirmOpen((prev) => !prev);
+    setRemoveConfirmOpen(true);
   };
 
   const cancelRemovePage = () => {
@@ -429,7 +943,6 @@ export default function FlipBook() {
   const confirmRemovePage = () => {
     if (isDeletingPage) return;
     if (pages.length <= 1) {
-      setRemoveConfirmOpen(false);
       return;
     }
 
@@ -454,6 +967,26 @@ export default function FlipBook() {
     }, DELETE_ANIM_MS);
   };
 
+  useEffect(() => {
+    onPageCountChange?.(pages.length);
+  }, [pages.length, onPageCountChange]);
+
+  useEffect(() => {
+    registerActions?.({
+      addPage,
+      removePage: confirmRemovePage,
+      requestRemovePage,
+      cancelRemovePage,
+    });
+  }, [registerActions, addPage, confirmRemovePage, requestRemovePage, cancelRemovePage]);
+
+  useEffect(() => {
+    onPageInfoChange?.({
+      currentPage: current + 1,
+      totalPages: pages.length,
+    });
+  }, [current, pages.length, onPageInfoChange]);
+
   const handleStickerSelect = (sticker) => {
     setSelectedSticker(sticker);
     setActiveTool(TOOL_KEYS.STICKER);
@@ -465,7 +998,17 @@ export default function FlipBook() {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
-        setPendingImage(reader.result);
+        if (uploadMode === "portrait") {
+          setPendingFrameImage({
+            imageSrc: reader.result,
+            frameSrc: PORTRAIT_FRAME_SRC,
+            frameInset: PORTRAIT_FRAME_INSET,
+          });
+          setPendingImage(null);
+        } else {
+          setPendingImage(reader.result);
+          setPendingFrameImage(null);
+        }
         setActiveTool(TOOL_KEYS.IMAGE);
       }
     };
@@ -473,41 +1016,21 @@ export default function FlipBook() {
     event.target.value = "";
   };
 
-  const isAdmin = true;
+  const getPageBlocks = (index, side) => {
+    const page = pages[index];
+    if (!page) return [];
+    const key = side === "front" ? "frontBlocks" : "backBlocks";
+    return page[key] || [];
+  };
 
-  const ensureSpeechTarget = () => {
-    const { index, side } = activeRef.current;
-    const selected = selectedRef.current;
-    let blockId = selected && selected.index === index && selected.side === side ? selected.id : null;
-    let selectedBlock = blockId ? getBlockById(index, side, blockId) : null;
-
-    if (!selectedBlock || selectedBlock.type !== "text") {
-      const block = createTextBlock({
-        x: 16,
-        y: 16,
-        font: fontFamily,
-        color: fontColor,
-        fontSize,
-        width: pageBounds.width - 32,
-        height: pageBounds.height - 32,
-        text: "",
-      });
-      addBlock(index, side, block);
-      blockId = block.id;
-      selectedBlock = block;
-      setSelectedBlock({ index, side, id: blockId });
-    }
-
-    if (!speechTargetRef.current || speechTargetRef.current.blockId !== blockId) {
-      speechTargetRef.current = {
-        index,
-        side,
-        blockId,
-        baseText: selectedBlock?.text || "",
-        interimText: "",
-      };
-    }
-
+  const setSpeechTargetFromBlock = (index, side, block) => {
+    speechTargetRef.current = {
+      index,
+      side,
+      blockId: block.id,
+      baseText: block?.text || "",
+      interimText: "",
+    };
     return speechTargetRef.current;
   };
 
@@ -520,25 +1043,36 @@ export default function FlipBook() {
     updateBlock(target.index, target.side, target.blockId, { text: committed });
   };
 
-  const startSpeechToText = () => {
+  const stopListening = () => {
+    shouldListenRef.current = false;
+    if (isListening) {
+      commitSpeechInterim();
+    }
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    speechTargetRef.current = null;
+  };
+
+  const startListening = (textId) => {
+    if (!textId) return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Speech-to-text is not supported in this browser. Use Chrome.");
       return;
     }
 
-    if (shouldListenRef.current) {
-      shouldListenRef.current = false;
-      setIsListening(false);
-      commitSpeechInterim();
-      speechTargetRef.current = null;
-      recognitionRef.current?.stop();
-      return;
-    }
-
+    stopListening();
+    setActiveTextId(textId);
     shouldListenRef.current = true;
     setIsListening(true);
-    ensureSpeechTarget();
+
+    const { index, side } = activeRef.current;
+    const block = getBlockById(index, side, textId);
+    if (!block || block.type !== "text") {
+      stopListening();
+      return;
+    }
+    setSpeechTargetFromBlock(index, side, block);
 
     const rec = recognitionRef.current || new SpeechRecognition();
     rec.lang = "en-US";
@@ -547,7 +1081,8 @@ export default function FlipBook() {
     rec.maxAlternatives = 1;
 
     rec.onresult = (event) => {
-      const target = ensureSpeechTarget();
+      const target = speechTargetRef.current;
+      if (!target) return;
       let finalText = "";
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -612,6 +1147,19 @@ export default function FlipBook() {
     }
   };
 
+  const armMic = () => {
+    stopListening();
+    setActiveTool(TOOL_KEYS.MIC);
+    setIsMicArmed(true);
+    setPendingPlacement(true);
+  };
+
+  const disarmMic = () => {
+    stopListening();
+    setIsMicArmed(false);
+    setPendingPlacement(false);
+  };
+
   const handleFontSizeChange = (nextSize) => {
     const size = clamp(nextSize, MIN_TEXT_SIZE, MAX_TEXT_SIZE);
     setFontSize(size);
@@ -645,173 +1193,249 @@ export default function FlipBook() {
   };
 
   const activeStickerId = selectedSticker?.id;
+  const selectedItem = selectedBlock
+    ? getBlockById(selectedBlock.index, selectedBlock.side, selectedBlock.id)
+    : null;
+  const isTextSelected = selectedItem?.type === "text";
+  const bottomActiveTool = (() => {
+    if (isListening) return "mic";
+    if (isMicArmed) return "mic";
+    if (isTextEditing) return "text";
+    if (activeTool === TOOL_KEYS.TEXT) return "text";
+    if (selectedItem) return "select";
+    if (activeTool === TOOL_KEYS.IMAGE) return "upload";
+    return activeTool;
+  })();
 
-  const renderToolbar = () => (
-    <div className="w-full rounded-2xl bg-slate-900/90 border border-white/10 p-3 flex flex-wrap gap-3 items-center justify-between">
-      <div className="flex flex-wrap gap-2 items-center">
+  const renderToolbar = () => {
+    const panelClass =
+      "flex items-center gap-2 bg-[#FFFAE8] px-3 py-2 rounded-[10px] border border-[#4A3C3A] shadow-[0_3px_0_rgba(197,193,176,0.6)]";
+    const panelLabel = "text-xs font-semibold text-[#4A3C3A]";
+    const smallButton =
+      "h-7 w-7 rounded-[8px] bg-gradient-to-b from-[#F4E4A8] to-[#E8D58F] text-[#402f2d] text-sm border border-[#c9b675] shadow-[0_2px_0_rgba(197,193,176,0.6)] transition-transform hover:scale-105";
+
+    const normalizeFontName = (value) =>
+      String(value || "")
+        .split(",")[0]
+        .replace(/["']/g, "")
+        .trim();
+    const currentFontName = normalizeFontName(fontFamily) || FONT_OPTIONS[0];
+    const currentFont =
+      FONT_OPTIONS.find((option) => option === currentFontName) || FONT_OPTIONS[0];
+
+    return (
+      <div className="w-full rounded-[14px] bg-[#493B3A] border border-[#4A3C3A] px-6 py-3 flex items-center justify-between gap-4">
+        <img
+          src="/assets/mainLogo.png"
+          alt="Logo"
+          className="h-10 w-auto object-contain"
+        />
+
+        <div className="flex-1 flex justify-center">
+          {isTextSelected && (
+            <div className="flex flex-nowrap gap-2 items-center justify-center">
+              <div className={panelClass}>
+                <span className={panelLabel}>Font</span>
+                <div className="font-dropdown" ref={fontMenuRef}>
+                  <button
+                    type="button"
+                    className="font-dropdown-button"
+                    onClick={() => setShowFontDropdown((prev) => !prev)}
+                    style={{ fontFamily: `"${currentFont}"` }}
+                  >
+                    {currentFont}
+                  </button>
+                  {showFontDropdown && (
+                    <div className="font-dropdown-list">
+                      {FONT_OPTIONS.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`font-dropdown-item ${
+                            normalizeFontName(fontFamily) === option ? "selected" : ""
+                          }`}
+                          style={{ fontFamily: `"${option}"` }}
+                          onClick={() => {
+                            handleFontFamilyChange(`"${option}"`);
+                            setShowFontDropdown(false);
+                          }}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className={panelClass}>
+                <span className={panelLabel}>Size</span>
+                <button
+                  className={smallButton}
+                  onClick={() => handleFontSizeChange(fontSize - 2)}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={MIN_TEXT_SIZE}
+                  max={MAX_TEXT_SIZE}
+                  value={fontSize}
+                  onChange={(event) => handleFontSizeChange(parseInt(event.target.value || "0", 10))}
+                  className="w-14 bg-[#FFFAE8] text-[#4A3C3A] text-sm rounded-[8px] px-2 py-1 text-center border border-[#4A3C3A] focus:outline-none focus:ring-2 focus:ring-[#F4E4A8] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+                />
+                <button
+                  className={smallButton}
+                  onClick={() => handleFontSizeChange(fontSize + 2)}
+                >
+                  +
+                </button>
+              </div>
+                <div className={panelClass}>
+                  <span className={panelLabel}>Color</span>
+                  <input
+                    type="color"
+                    value={fontColor}
+                    onChange={(event) => handleFontColorChange(event.target.value)}
+                    className="color-preview"
+                  />
+                </div>
+            </div>
+          )}
+        </div>
+
         <button
-          className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-            activeTool === TOOL_KEYS.TEXT
-              ? "bg-white text-slate-900"
-              : "bg-slate-700 text-white"
-          }`}
-          onClick={() => setActiveTool(TOOL_KEYS.TEXT)}
+          type="button"
+          className="h-[46px] px-7 rounded-[8px] bg-gradient-to-b from-[#F4E4A8] to-[#E8D58F] text-[#402f2d] text-base font-semibold border border-[#c9b675] shadow-[0_2px_0_rgba(197,193,176,0.6)] transition-transform hover:scale-[1.03] active:translate-y-[1px]"
         >
-          Text
+          Invite
         </button>
-        <button
-          className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-            activeTool === TOOL_KEYS.SELECT
-              ? "bg-white text-slate-900"
-              : "bg-slate-700 text-white"
-          }`}
-          onClick={() => setActiveTool(TOOL_KEYS.SELECT)}
-        >
-          Select
-        </button>
-        {isAdmin && (
-          <button
-            className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-              isListening ? "bg-emerald-400 text-slate-900" : "bg-slate-700 text-white"
-            }`}
-            onClick={startSpeechToText}
-          >
-            {isListening ? "Listening…" : "Mic"}
-          </button>
-        )}
-        <div className="flex items-center gap-2 bg-slate-800/70 px-3 py-2 rounded-lg">
-          <span className="text-xs text-slate-200">Font</span>
-          <select
-            className="bg-slate-700 text-white text-sm rounded-md px-2 py-1"
-            value={fontFamily}
-            onChange={(event) => handleFontFamilyChange(event.target.value)}
-          >
-            <option value={DEFAULT_FONT}>Default (Poppins)</option>
-            <option value='"Patrick Hand", cursive'>Patrick Hand</option>
-            <option value='"Caveat", cursive'>Caveat</option>
-            <option value='"Dancing Script", cursive'>Dancing Script</option>
-            <option value='"Indie Flower", cursive'>Indie Flower</option>
-            <option value='"Shadows Into Light", cursive'>Shadows Into Light</option>
-            <option value='"Gloria Hallelujah", cursive'>Gloria Hallelujah</option>
-            <option value='"Short Stack", cursive'>Short Stack</option>
-            <option value='"Pixelify Sans", monospace'>Pixelify Sans</option>
-            <option value='"Press Start 2P", monospace'>Press Start 2P</option>
-            <option value='"VT323", monospace'>VT323</option>
-          </select>
-        </div>
-        <div className="flex items-center gap-2 bg-slate-800/70 px-3 py-2 rounded-lg">
-          <span className="text-xs text-slate-200">Size</span>
-          <button
-            className="h-7 w-7 rounded bg-slate-700 text-white text-sm"
-            onClick={() => handleFontSizeChange(fontSize - 2)}
-          >
-            -
-          </button>
-          <input
-            type="number"
-            min={MIN_TEXT_SIZE}
-            max={MAX_TEXT_SIZE}
-            value={fontSize}
-            onChange={(event) => handleFontSizeChange(parseInt(event.target.value || "0", 10))}
-            className="w-14 bg-slate-700 text-white text-sm rounded-md px-2 py-1 text-center"
-          />
-          <button
-            className="h-7 w-7 rounded bg-slate-700 text-white text-sm"
-            onClick={() => handleFontSizeChange(fontSize + 2)}
-          >
-            +
-          </button>
-        </div>
-        <div className="flex items-center gap-2 bg-slate-800/70 px-3 py-2 rounded-lg">
-          <span className="text-xs text-slate-200">Color</span>
-          <input
-            type="color"
-            value={fontColor}
-            onChange={(event) => handleFontColorChange(event.target.value)}
-            className="h-8 w-8 rounded border-none bg-transparent cursor-pointer"
-          />
-        </div>
       </div>
+    );
+  };
 
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-200">Stickers</span>
-          <div className="flex gap-2">
-            {STICKERS.map((sticker) => (
+  const handleBottomToolClick = (tool, mode) => {
+    if (tool !== "mic") {
+      disarmMic();
+    }
+    if (tool === "select") {
+      setActiveTool(TOOL_KEYS.SELECT);
+      setStickerOpen(false);
+      setPendingPlacement(false);
+      return;
+    }
+    if (tool === "text") {
+      setActiveTool(TOOL_KEYS.TEXT);
+      setStickerOpen(false);
+      setPendingPlacement(true);
+      return;
+    }
+    if (tool === "mic") {
+      setStickerOpen(false);
+      armMic();
+      return;
+    }
+    if (tool === "upload") {
+      setStickerOpen(false);
+      setUploadMode(mode === "portrait" ? "portrait" : "normal");
+      setActiveTool(TOOL_KEYS.IMAGE);
+      setPendingPlacement(true);
+      uploadInputRef.current?.click();
+      return;
+    }
+    if (tool === "sticker") {
+      setActiveTool(TOOL_KEYS.STICKER);
+      setPendingPlacement(true);
+      setStickerOpen((prev) => !prev);
+      return;
+    }
+  };
+
+  const stickerCategories = ["All", "Paper", "Vintage", "Flowers", "G Style", "Duck", "Pumpkin", "Letters"];
+  const filteredStickers =
+    stickerFilter === "All"
+      ? STICKERS
+      : STICKERS.filter((sticker) => sticker.category === stickerFilter);
+
+  const stickerPopover = stickerOpen ? (
+    <div
+      ref={stickerMenuRef}
+      className="sticker-popover"
+    >
+      <div className="sticker-popover-frame" aria-hidden="true">
+        <svg className="sticker-popover-svg" viewBox="0 0 420 560" preserveAspectRatio="none">
+          <rect
+            x="6"
+            y="6"
+            width="408"
+            height="548"
+            rx="18"
+            ry="18"
+            fill="#FFFAE8"
+            stroke="#C5C1B0"
+            strokeWidth="2.5"
+          />
+        </svg>
+      </div>
+      <div className="sticker-popover-content">
+        <div className="sticker-popover-header">
+          <div>
+            <h3 className="sticker-popover-title">Choose a Sticker</h3>
+            <p className="sticker-popover-subtitle">Click to add to your canvas</p>
+          </div>
+          <button
+            type="button"
+            className="sticker-popover-close"
+            onClick={() => setStickerOpen(false)}
+          >
+            ×
+          </button>
+        </div>
+        <div className="sticker-popover-filters">
+          {stickerCategories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`sticker-filter-chip ${
+                stickerFilter === category ? "sticker-filter-chip-active" : ""
+              }`}
+              onClick={() => setStickerFilter(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <div className="sticker-popover-body">
+          <div className="sticker-popover-grid">
+            {filteredStickers.map((sticker) => (
               <button
                 key={sticker.id}
-                onClick={() => handleStickerSelect(sticker)}
-                className={`h-10 w-10 rounded-lg border transition ${
+                type="button"
+                onClick={() => {
+                  handleStickerSelect(sticker);
+                  setStickerOpen(false);
+                }}
+                className={`sticker-popover-item ${
                   activeTool === TOOL_KEYS.STICKER && activeStickerId === sticker.id
-                    ? "border-emerald-400"
-                    : "border-white/10"
+                    ? "sticker-popover-item-active"
+                    : ""
                 }`}
               >
-                <img src={sticker.src} alt={sticker.label} className="h-9 w-9 object-contain" />
+                <img
+                  src={sticker.src}
+                  alt={sticker.label}
+                  className="sticker-popover-image"
+                  loading="lazy"
+                />
               </button>
             ))}
           </div>
         </div>
-        <label className="inline-flex items-center gap-2 bg-slate-700 text-white text-sm font-semibold px-3 py-2 rounded-lg cursor-pointer">
-          Upload
-          <input
-            type="file"
-            accept="image/png,image/jpeg"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-        </label>
       </div>
     </div>
-  );
-
-  const renderReadingControls = () => (
-    <div className="w-full max-w-6xl flex items-center justify-between">
-      <div className="text-sm text-slate-200">
-        {"Reading Mode"} · Page {current + 1} of {pages.length}
-      </div>
-      <div className="flex gap-2">
-        <button
-          className="px-3 py-2 rounded-lg text-sm font-semibold bg-slate-700 text-white"
-          onClick={addPage}
-        >
-          Add Page
-        </button>
-        <div className="relative">
-          <button
-            className="px-3 py-2 rounded-lg text-sm font-semibold bg-slate-700 text-white"
-            onClick={requestRemovePage}
-          >
-            Remove Page
-          </button>
-          {removeConfirmOpen && (
-            <div className="absolute right-0 mt-2 w-52 rounded-lg bg-slate-900/95 border border-white/10 p-3 text-xs text-slate-100 shadow-xl z-50">
-              <div className="mb-2">Remove this page?</div>
-              <div className="flex gap-2">
-                <button
-                  className="flex-1 px-2 py-1 rounded-md bg-rose-500 text-white font-semibold"
-                  onClick={confirmRemovePage}
-                >
-                  Remove
-                </button>
-                <button
-                  className="flex-1 px-2 py-1 rounded-md bg-slate-700 text-white font-semibold"
-                  onClick={cancelRemovePage}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  ) : null;
 
   return (
     <div className="w-full max-w-6xl flex flex-col items-center gap-4">
-      {renderReadingControls()}
-
       <div className="relative">
         <div className={`book ${isOpen ? "open" : ""} ${isFlipping ? "flipping" : ""}`}>
           {isOpen && current > 0 && !zoomMode && (
@@ -862,6 +1486,7 @@ export default function FlipBook() {
               current={current}
               frontBlocks={page.frontBlocks}
               backBlocks={page.backBlocks}
+              pageBounds={pageBounds}
               isOpen={isOpen}
               onPageClick={handlePageClick}
               isDeleting={isDeletingPage && deletingIndex === index}
@@ -910,6 +1535,19 @@ export default function FlipBook() {
                 width: block.w,
                 height: block.h,
                 src: block.src,
+              };
+            }
+            if (block.type === "framedImage") {
+              return {
+                id: block.id,
+                type: "framedImage",
+                x: block.x,
+                y: block.y,
+                width: block.w,
+                height: block.h,
+                imageSrc: block.imageSrc || block.src,
+                frameSrc: block.frameSrc || PORTRAIT_FRAME_SRC,
+                frameInset: PORTRAIT_FRAME_INSET,
               };
             }
             return null;
@@ -963,6 +1601,19 @@ export default function FlipBook() {
                       src: item.src,
                     };
                   }
+                  if (item.type === "framedImage") {
+                    return {
+                      id: item.id,
+                      type: "framedImage",
+                      x: item.x,
+                      y: item.y,
+                      w: item.width,
+                      h: item.height,
+                      imageSrc: item.imageSrc || item.src,
+                      frameSrc: item.frameSrc || PORTRAIT_FRAME_SRC,
+                      frameInset: PORTRAIT_FRAME_INSET,
+                    };
+                  }
                   return null;
                 })
                 .filter(Boolean);
@@ -980,28 +1631,52 @@ export default function FlipBook() {
             onSelect={(id) => {
               if (!id) {
                 setSelectedBlock(null);
+                setActiveTool(null);
+                setStickerOpen(false);
+                setIsTextEditing(false);
+                setActiveTextId(null);
+                if (!isMicArmed) {
+                  setPendingPlacement(false);
+                }
                 return;
               }
               setSelectedBlock({ index: active.index, side: active.side, id });
+              const selected = getBlockById(active.index, active.side, id);
+              setActiveTextId(selected && selected.type === "text" ? id : null);
+              setActiveTool(TOOL_KEYS.SELECT);
+              if (!isMicArmed) {
+                setPendingPlacement(false);
+              }
             }}
             fontFamily={fontFamily}
             color={fontColor}
             fontSize={fontSize}
             onClose={closeEditMode}
     pageBounds={pageBounds}
-            mode={activeTool}
+            mode={activeTool === TOOL_KEYS.MIC ? TOOL_KEYS.TEXT : activeTool}
             onAddItem={(type, data) => {
               const { index, side } = activeRef.current;
               if (type === "text") {
+                const existingBlocks = getPageBlocks(index, side);
+                const shouldLarge = isMicArmed && existingBlocks.length === 0;
                 const block = createTextBlock({
-                  x: data.x,
-                  y: data.y,
+                  x: shouldLarge ? 16 : data.x,
+                  y: shouldLarge ? 16 : data.y,
                   font: fontFamily,
                   color: fontColor,
                   fontSize,
+                  width: shouldLarge ? pageBounds.width - 32 : undefined,
+                  height: shouldLarge ? pageBounds.height - 32 : undefined,
                 });
                 addBlock(index, side, block);
                 setSelectedBlock({ index, side, id: block.id });
+                setActiveTextId(block.id);
+                if (isMicArmed) {
+                  setSpeechTargetFromBlock(index, side, block);
+                } else {
+                  setPendingPlacement(false);
+                  setActiveTool(TOOL_KEYS.SELECT);
+                }
                 return;
               }
               if (type === "sticker") {
@@ -1013,22 +1688,57 @@ export default function FlipBook() {
                 });
                 addBlock(index, side, block);
                 setSelectedBlock({ index, side, id: block.id });
+                setPendingPlacement(false);
+                setActiveTool(TOOL_KEYS.SELECT);
                 return;
               }
               if (type === "image") {
-                if (!pendingImage) return;
-                const block = createImageBlock({
-                  x: data.x,
-                  y: data.y,
-                  src: pendingImage,
-                });
+                if (!pendingImage && !pendingFrameImage) return;
+                const block = pendingFrameImage
+                  ? createFramedImageBlock({
+                      x: data.x,
+                      y: data.y,
+                      imageSrc: pendingFrameImage.imageSrc,
+                      frameSrc: pendingFrameImage.frameSrc,
+                      frameInset: pendingFrameImage.frameInset,
+                    })
+                  : createImageBlock({
+                      x: data.x,
+                      y: data.y,
+                      src: pendingImage,
+                    });
                 addBlock(index, side, block);
                 setSelectedBlock({ index, side, id: block.id });
                 setPendingImage(null);
+                setPendingFrameImage(null);
+                setPendingPlacement(false);
                 setActiveTool(TOOL_KEYS.SELECT);
               }
             }}
+            onTextEditStart={(id) => {
+              setIsTextEditing(true);
+              if (id) {
+                setActiveTextId(id);
+              }
+              if (isMicArmed && id) {
+                startListening(id);
+              }
+            }}
+            onTextEditEnd={() => {
+              setIsTextEditing(false);
+              if (isListening) {
+                stopListening();
+              }
+            }}
             toolbar={renderToolbar()}
+            bottomToolProps={{
+              activeTool: bottomActiveTool,
+              isListening,
+              onToolClick: handleBottomToolClick,
+            }}
+            stickerPopover={stickerPopover}
+            uploadInputRef={uploadInputRef}
+            onUploadChange={handleImageUpload}
           />
         );
       })()}

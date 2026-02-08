@@ -40,7 +40,6 @@ export default function DraggableResizable({
   const handleMouseDown = (e) => {
     if (disabled) return;
     if (e.target.classList.contains('resize-handle')) return;
-    
     setIsDragging(true);
     const rect = elementRef.current.getBoundingClientRect();
     
@@ -127,7 +126,7 @@ export default function DraggableResizable({
   return (
     <div
       ref={elementRef}
-      className={`absolute ${isSelected ? 'ring-2 ring-blue-500' : ''} ${disabled ? 'pointer-events-none' : 'cursor-move'}`}
+      className={`absolute ${isSelected ? 'selection-outline' : ''} ${disabled ? 'pointer-events-none' : 'cursor-move'}`}
       style={{
         left: `${x}px`,
         top: `${y}px`,
@@ -142,17 +141,15 @@ export default function DraggableResizable({
           {handles.map((handle) => (
             <div
               key={handle}
-              className={`resize-handle absolute bg-blue-500 border border-white ${handle === 'nw' ? 'top-0 left-0 cursor-nw-resize' : ''} ${handle === 'ne' ? 'top-0 right-0 cursor-ne-resize' : ''} ${handle === 'sw' ? 'bottom-0 left-0 cursor-sw-resize' : ''} ${handle === 'se' ? 'bottom-0 right-0 cursor-se-resize' : ''} ${handle === 'n' ? 'top-0 left-1/2 -translate-x-1/2 cursor-n-resize' : ''} ${handle === 's' ? 'bottom-0 left-1/2 -translate-x-1/2 cursor-s-resize' : ''} ${handle === 'e' ? 'right-0 top-1/2 -translate-y-1/2 cursor-e-resize' : ''} ${handle === 'w' ? 'left-0 top-1/2 -translate-y-1/2 cursor-w-resize' : ''}`}
-              style={{
-                width: '8px',
-                height: '8px',
-              }}
+              className={`resize-handle handle-${handle} absolute ${handle === 'nw' ? 'top-0 left-0 cursor-nw-resize' : ''} ${handle === 'ne' ? 'top-0 right-0 cursor-ne-resize' : ''} ${handle === 'sw' ? 'bottom-0 left-0 cursor-sw-resize' : ''} ${handle === 'se' ? 'bottom-0 right-0 cursor-se-resize' : ''} ${handle === 'n' ? 'top-0 left-1/2 cursor-n-resize' : ''} ${handle === 's' ? 'bottom-0 left-1/2 cursor-s-resize' : ''} ${handle === 'e' ? 'right-0 top-1/2 cursor-e-resize' : ''} ${handle === 'w' ? 'left-0 top-1/2 cursor-w-resize' : ''}`}
               onMouseDown={(e) => handleResizeStart(e, handle)}
-            />
+            >
+              <span className="resize-handle-inner" />
+            </div>
           ))}
           {onDelete && (
             <button
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 z-10"
+              className="selection-close absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs z-10"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete();

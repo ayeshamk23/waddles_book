@@ -1,5 +1,6 @@
 import React from 'react';
 import PageCanvas from './PageCanvas';
+import BottomToolDock from "../components/editor/BottomToolDock";
 
 export default function ZoomEditMode({
   pageIndex,
@@ -16,51 +17,84 @@ export default function ZoomEditMode({
   mode,
   onAddItem,
   toolbar,
+  bottomToolProps = {},
+  stickerPopover = null,
+  uploadInputRef,
+  onUploadChange,
+  onTextEditStart,
+  onTextEditEnd,
 }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-8">
-      <div className="relative bg-white rounded-lg shadow-2xl max-w-6xl w-full h-full max-h-[90vh] overflow-auto">
-        <div className="sticky top-0 bg-gray-800 p-4 flex justify-between items-center z-10 rounded-t-lg">
-          <h2 className="text-white font-semibold text-lg">
-            Editing Page {pageIndex + 1} - {side === 'front' ? 'Front' : 'Back'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
-          >
-            Back to Book
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-[#3B2A28] z-50 flex items-center justify-center p-6 md:p-8">
+      <div className="relative">
+        <button
+          onClick={onClose}
+          aria-label="Back to Book"
+          className="absolute -top-[18px] -left-[18px] z-10 h-11 w-11 rounded-full bg-[#FFFAE8] border border-[#4A3C3A] text-[#4A3C3A] text-xl font-bold shadow-[0_3px_0_rgba(197,193,176,0.6)] transition-transform hover:scale-105"
+        >
+          ←
+        </button>
+
+        <div
+          className="relative editor-shell w-[1261px] max-w-[calc(100vw-48px)] h-[calc(100vh-120px)] min-h-[920px] bg-white rounded-[8px] overflow-visible px-[30px] pt-[26px] pb-[153px] flex flex-col"
+          style={{
+            "--page-width": `${pageBounds?.width || 400}px`,
+            "--page-height": `${pageBounds?.height || 500}px`,
+            "--page-half": `${(pageBounds?.width || 400) / 2}px`,
+            "--sticker-width": "320px",
+            "--sticker-gap": "14px",
+            "--sticker-shift": "140px",
+            "--toolbar-top": "34px",
+          }}
+        >
         {toolbar && (
-          <div className="sticky top-[64px] z-10 bg-gray-900/95 backdrop-blur px-4 py-3">
+          <div className="w-full mt-[8px] mb-6 px-[28px]">
             {toolbar}
           </div>
         )}
-        <div className="p-8" style={{ minHeight: 'calc(90vh - 80px)' }}>
-          <div
-            className="bg-white mx-auto shadow-lg"
-            style={{
-              width: pageBounds?.width || 400,
-              height: pageBounds?.height || 500,
-              position: 'relative',
-            }}
-          >
-            <PageCanvas
-              content={content}
-              onContentUpdate={onContentUpdate}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              fontFamily={fontFamily}
-              color={color}
-              fontSize={fontSize}
-              pageBounds={pageBounds}
-              isEditable={true}
-              mode={mode}
-              onAddItem={onAddItem}
-            />
+
+          <div className="flex-1 min-h-0 flex items-center justify-center pb-8">
+            <div
+              className="relative w-full flex items-start justify-center"
+              style={{ height: pageBounds?.height || 500 }}
+            >
+              <div
+                className="bg-white mx-auto rounded-[8px] shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+                style={{
+                  width: pageBounds?.width || 400,
+                  height: pageBounds?.height || 500,
+                  position: 'relative',
+                }}
+              >
+                <PageCanvas
+                  content={content}
+                  onContentUpdate={onContentUpdate}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  fontFamily={fontFamily}
+                  color={color}
+                  fontSize={fontSize}
+                  pageBounds={pageBounds}
+                  isEditable={true}
+                  mode={mode}
+                  onAddItem={onAddItem}
+                  onTextEditStart={onTextEditStart}
+                  onTextEditEnd={onTextEditEnd}
+                />
+              </div>
+              {stickerPopover}
+            </div>
           </div>
         </div>
       </div>
+      <BottomToolDock {...bottomToolProps} />
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/png,image/jpeg"
+        onChange={onUploadChange}
+        className="hidden"
+      />
     </div>
   );
 }

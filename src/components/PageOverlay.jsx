@@ -150,21 +150,48 @@ export default function PageOverlay({
         );
       }
 
-      const media = block.type === "image" ? (
-        <img
-          src={block.src}
-          alt="Uploaded"
-          className="w-full h-full object-contain"
-          draggable={false}
-        />
-      ) : (
-        <img
-          src={block.src}
-          alt="Sticker"
-          className="w-full h-full object-contain"
-          draggable={false}
-        />
-      );
+      const media =
+        block.type === "framedImage" ? (
+          <div className="relative w-full h-full">
+            <div
+              className="absolute overflow-hidden z-10"
+              style={{
+                top: "10%",
+                left: "10%",
+                right: "10%",
+                bottom: "30%",
+                background: "#fff",
+              }}
+            >
+              <img
+                src={block.imageSrc || block.src}
+                alt="Uploaded"
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+            </div>
+            <img
+              src={block.frameSrc || "/assets/frame.png"}
+              alt="Frame"
+              className="absolute inset-0 w-full h-full pointer-events-none select-none shadow-[0_3px_6px_rgba(0,0,0,0.12)] z-0"
+              draggable={false}
+            />
+          </div>
+        ) : block.type === "image" ? (
+          <img
+            src={block.src}
+            alt="Uploaded"
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
+        ) : (
+          <img
+            src={block.src}
+            alt="Sticker"
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
+        );
 
       return (
         <div

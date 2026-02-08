@@ -1,0 +1,164 @@
+.bottom-tool-dock-container {
+  position: fixed;
+  left: 50%;
+  bottom: -60px;
+  transform: translateX(-50%);
+  width: min(95vw, 1400px);
+  /* z-index: 999; */
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* When placed inside the editor white container */
+.editor-shell .bottom-tool-dock-container {
+  position: relative;
+  left: 95%;
+  max-width: 1400px;
+  bottom: 16px;
+  height: 200px;
+  transform: translateX(-50%);
+  width: min(98vw, 1400px);
+  z-index: 999;
+}
+
+.bottom-tool-dock {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.dock-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dock-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tool-icons-container {
+  position: absolute;
+  left: 50%;
+  bottom: 55px;
+  transform: translateX(-50%);
+  width: 100%;
+  padding: 0 36px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 40px;
+  z-index: 2;
+}
+
+.tool-icon-button {
+  margin-bottom: 0;
+}
+
+.mic-icon-img {
+  width: 114px;
+  height: 114px;
+}
+
+.paper-tool-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.upload-tool-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.upload-mode-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fffaf0;
+  border: 2px solid #c5c1b0;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.upload-mode-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #230401;
+  font-size: 13px;
+  padding: 8px 12px;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.upload-mode-item:hover {
+  background: #fff8d6;
+}
+
+.paper-coming-soon {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fffaf0;
+  color: #4a3c3a;
+  border: 2px solid #4a3c3a;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(197, 193, 176, 0.6);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.paper-coming-soon-arrow {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #4a3c3a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .tool-icons-container {
+    gap: 25px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bottom-tool-dock {
+    height: 160px;
+  }
+  .tool-icons-container {
+    bottom: 45px;
+    padding: 0 16px;
+    gap: 15px;
+  }
+}

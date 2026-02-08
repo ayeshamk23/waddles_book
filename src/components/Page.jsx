@@ -7,6 +7,7 @@ export default function Page({
   current,
   frontBlocks,
   backBlocks,
+  pageBounds,
   active,
   activeTool,
   selectedBlock,
@@ -62,6 +63,58 @@ export default function Page({
     onStartDrag?.(event, index, side, blockId, "resize");
   };
 
+  const getSafeRect = (block) => {
+    const rawX = Number.isFinite(block.x) ? block.x : 0;
+    const rawY = Number.isFinite(block.y) ? block.y : 0;
+    const rawWidth = Number.isFinite(block.w)
+      ? block.w
+      : Number.isFinite(block.width)
+        ? block.width
+        : 120;
+    const rawHeight = Number.isFinite(block.h)
+      ? block.h
+      : Number.isFinite(block.height)
+        ? block.height
+        : 80;
+
+    const boundsWidth = pageBounds?.width;
+    const boundsHeight = pageBounds?.height;
+
+    if (!Number.isFinite(boundsWidth) || !Number.isFinite(boundsHeight)) {
+      return {
+        x: rawX,
+        y: rawY,
+        width: rawWidth,
+        height: rawHeight,
+      };
+    }
+
+    const minWidth =
+    block.type === "sticker"
+      ? 30
+      : block.type === "image" || block.type === "framedImage"
+        ? 50
+        : 50;
+    const minHeight =
+    block.type === "sticker"
+      ? 30
+      : block.type === "image" || block.type === "framedImage"
+        ? 50
+        : 30;
+
+    const safeX = Math.max(0, Math.min(rawX, boundsWidth - rawWidth));
+    const safeY = Math.max(0, Math.min(rawY, boundsHeight - rawHeight));
+    const safeWidth = Math.max(minWidth, Math.min(rawWidth, boundsWidth - rawX));
+    const safeHeight = Math.max(minHeight, Math.min(rawHeight, boundsHeight - rawY));
+
+    return {
+      x: safeX,
+      y: safeY,
+      width: safeWidth,
+      height: safeHeight,
+    };
+  };
+
   const renderBlocks = (blocks, side, isSideActive) =>
     (blocks || []).map((block) => {
       const isBackSide = side === "back";
@@ -71,11 +124,12 @@ export default function Page({
         selectedBlock?.side === side &&
         selectedBlock?.id === block.id;
 
+      const safeRect = getSafeRect(block);
       const baseStyle = {
-        left: `${block.x}px`,
-        top: `${block.y}px`,
-        width: `${block.w}px`,
-        height: `${block.h}px`,
+        left: `${safeRect.x}px`,
+        top: `${safeRect.y}px`,
+        width: `${safeRect.width}px`,
+        height: `${safeRect.height}px`,
       };
 
       const showHandles = isSelected && isSideActive;
@@ -172,29 +226,64 @@ export default function Page({
         );
       }
 
-      const media = block.type === "image" ? (
-        <img
-          src={block.src}
-          alt="Uploaded"
-          className="w-full h-full object-contain"
-          draggable={false}
-          style={{
-            transform: contentFlip,
-            transformOrigin: "center",
-          }}
-        />
-      ) : (
-        <img
-          src={block.src}
-          alt="Sticker"
-          className="w-full h-full object-contain"
-          draggable={false}
-          style={{
-            transform: contentFlip,
-            transformOrigin: "center",
-          }}
-        />
-      );
+      const media =
+        block.type === "framedImage" ? (
+          <div className="relative w-full h-full">
+            <div
+              className="absolute overflow-hidden z-10"
+              style={{
+                top: "10%",
+                left: "10%",
+                right: "10%",
+                bottom: "30%",
+                background: "#fff",
+              }}
+            >
+              <img
+                src={block.imageSrc || block.src}
+                alt="Uploaded"
+                className="w-full h-full object-cover"
+                draggable={false}
+                style={{
+                  transform: contentFlip,
+                  transformOrigin: "center",
+                }}
+              />
+            </div>
+            <img
+              src={block.frameSrc || "/assets/frame.png"}
+              alt="Frame"
+              className="absolute inset-0 w-full h-full pointer-events-none select-none shadow-[0_3px_6px_rgba(0,0,0,0.12)] z-0"
+              draggable={false}
+              style={{
+                transform: contentFlip,
+                transformOrigin: "center",
+              }}
+            />
+          </div>
+        ) : block.type === "image" ? (
+          <img
+            src={block.src}
+            alt="Uploaded"
+            className="w-full h-full object-contain"
+            draggable={false}
+            style={{
+              transform: contentFlip,
+              transformOrigin: "center",
+            }}
+          />
+        ) : (
+          <img
+            src={block.src}
+            alt="Sticker"
+            className="w-full h-full object-contain"
+            draggable={false}
+            style={{
+              transform: contentFlip,
+              transformOrigin: "center",
+            }}
+          />
+        );
 
       return (
         <div

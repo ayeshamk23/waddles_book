@@ -16,10 +16,13 @@ export default function TextBlock({
   isSelected,
   pageBounds,
   onSelect,
+  onEditStart,
+  onEditEnd,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(text);
   const textareaRef = useRef(null);
+  const editingStateRef = useRef(isEditing);
 
   useEffect(() => {
     setEditText(text);
@@ -31,6 +34,16 @@ export default function TextBlock({
       textareaRef.current.select();
     }
   }, [isEditing]);
+
+  useEffect(() => {
+    if (editingStateRef.current === isEditing) return;
+    editingStateRef.current = isEditing;
+    if (isEditing) {
+      onEditStart?.();
+    } else {
+      onEditEnd?.();
+    }
+  }, [isEditing, onEditEnd, onEditStart]);
 
   const handleDoubleClick = () => {
     setIsEditing(true);
