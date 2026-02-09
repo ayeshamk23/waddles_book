@@ -63,6 +63,17 @@
   animation: bounce-pulse 1.5s ease-in-out infinite;
 }
 
+.mic-tool-button.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  transform: none;
+}
+
+.mic-tool-button.disabled .tool-icon-shadow {
+  opacity: 0.2;
+}
+
 @keyframes bounce-pulse {
   0% {
     transform: scale(1);

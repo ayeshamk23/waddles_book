@@ -23,6 +23,11 @@ export default function ZoomEditMode({
   onUploadChange,
   onTextEditStart,
   onTextEditEnd,
+  currentUser,
+  getUserColor,
+  remotePresence,
+  currentUserId,
+  onCursorChange,
 }) {
   return (
     <div className="fixed inset-0 bg-[#3B2A28] z-50 flex items-center justify-center p-6 md:p-8">
@@ -66,21 +71,26 @@ export default function ZoomEditMode({
                   position: 'relative',
                 }}
               >
-                <PageCanvas
-                  content={content}
-                  onContentUpdate={onContentUpdate}
-                  selectedId={selectedId}
-                  onSelect={onSelect}
-                  fontFamily={fontFamily}
-                  color={color}
-                  fontSize={fontSize}
-                  pageBounds={pageBounds}
-                  isEditable={true}
-                  mode={mode}
-                  onAddItem={onAddItem}
-                  onTextEditStart={onTextEditStart}
-                  onTextEditEnd={onTextEditEnd}
-                />
+              <PageCanvas
+                content={content}
+                onContentUpdate={onContentUpdate}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                fontFamily={fontFamily}
+                color={color}
+                fontSize={fontSize}
+                pageBounds={pageBounds}
+                isEditable={true}
+                mode={mode}
+                onAddItem={onAddItem}
+                onTextEditStart={onTextEditStart}
+                onTextEditEnd={onTextEditEnd}
+                currentUser={currentUser}
+                getUserColor={getUserColor}
+                remotePresence={remotePresence}
+                currentUserId={currentUserId}
+                onCursorChange={onCursorChange}
+              />
               </div>
               {stickerPopover}
             </div>

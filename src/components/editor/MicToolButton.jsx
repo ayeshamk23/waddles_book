@@ -2,19 +2,25 @@ import React, { useState } from "react";
 import Tooltip from "./Tooltip";
 import "./MicToolButton.css";
 
-export default function MicToolButton({ isActive, isListening, onClick }) {
+export default function MicToolButton({ isActive, isListening, isDisabled, onClick }) {
   const [isHovered, setIsHovered] = useState(false);
+  const tooltipText = isDisabled
+    ? "Microphone disabled for collaborators"
+    : isListening
+      ? "Listening..."
+      : "Mic";
 
   return (
     <div className="tool-icon-button-wrapper">
-      {isHovered && <Tooltip text={isListening ? "Listening..." : "Mic"} />}
+      {isHovered && <Tooltip text={tooltipText} />}
       <button
         type="button"
         className={`tool-icon-button mic-tool-button${isActive ? " active" : ""}${
           isListening ? " listening" : ""
-        }`}
-        onClick={onClick}
+        }${isDisabled ? " disabled" : ""}`}
+        onClick={isDisabled ? undefined : onClick}
         aria-label="Mic"
+        disabled={isDisabled}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

@@ -125,6 +125,18 @@
   height: 80px;
 }
 
+.button-icon.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  transform: none;
+}
+
+.button-icon.disabled:hover,
+.button-icon.disabled:active {
+  transform: none;
+}
+
 .button-icon:hover {
   transform: scale(1.08);
 }

@@ -12,6 +12,33 @@ const MAX_TEXT_SIZE = 72;
 const PAGE_BOUNDS = { width: 400, height: 500 };
 const DELETE_ANIM_MS = 280;
 
+const COLLAB_COLORS = [
+  "#BCC15B",
+  "#57B7BC",
+  "#FC7832",
+  "#F0D055",
+  "#7EC77B",
+  "#7BB2FF",
+  "#FF9EC9",
+  "#9B7BFF",
+  "#59D4A8",
+  "#FFB347",
+];
+
+const FRIEND_DIRECTORY = ["Sara", "Omar", "Lina", "Noor", "Maya", "Yousef"];
+
+const hashString = (value = "") => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const getColorForUser = (username) =>
+  COLLAB_COLORS[hashString(username) % COLLAB_COLORS.length];
+
 const TOOL_KEYS = {
   SELECT: "select",
   TEXT: "text",
@@ -535,7 +562,7 @@ const loadPages = () => {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-export default function FlipBook({ registerActions, onPageCountChange, onPageInfoChange }) {
+export default function FlipBook({ registerActions, onPageCountChange, onPageInfoChange, currentUser }) {
   const [pages, setPages] = useState(() => loadPages());
   const [current, setCurrent] = useState(0);
   const [isOpen] = useState(true);
@@ -555,6 +582,32 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   const [pendingImage, setPendingImage] = useState(null);
   const [pendingFrameImage, setPendingFrameImage] = useState(null);
   const [uploadMode, setUploadMode] = useState("normal");
+  const [collabState, setCollabState] = useState(() => {
+    const ownerUsername = currentUser?.role === "owner" ? currentUser.username : "Owner";
+    const owner = {
+      username: ownerUsername,
+      role: "owner",
+      color: getColorForUser(ownerUsername),
+    };
+    const collaborators = [owner];
+    if (currentUser?.role === "collaborator" && currentUser.username !== ownerUsername) {
+      collaborators.push({
+        username: currentUser.username,
+        role: "collaborator",
+        color: getColorForUser(currentUser.username),
+      });
+    }
+    return {
+      bookId: "book-1",
+      owner,
+      collaborators,
+      invites: [],
+    };
+  });
+  const [inviteName, setInviteName] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const inviteMenuRef = useRef(null);
+  const [inviteError, setInviteError] = useState("");
   const [fontFamily, setFontFamily] = useState(
     () => localStorage.getItem("tool-font") || DEFAULT_FONT
   );
@@ -583,6 +636,15 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   const uploadInputRef = useRef(null);
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const fontMenuRef = useRef(null);
+  const isOwner = currentUser?.role !== "collaborator";
+  const currentUserId = currentUser?.id || currentUser?.username || "local";
+  const currentUserName = currentUser?.name || currentUser?.username || "You";
+  const [remotePresence, setRemotePresence] = useState({});
+  const presenceChannelRef = useRef(null);
+  const presenceThrottleRef = useRef(null);
+  const pendingPresenceRef = useRef(null);
+  const lastPresenceTextIdRef = useRef(null);
+  const suppressBroadcastRef = useRef(false);
 
   useEffect(() => {
     const parseDurationMs = (value) => {
@@ -657,6 +719,16 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (presenceThrottleRef.current) {
+        clearTimeout(presenceThrottleRef.current);
+        presenceThrottleRef.current = null;
+      }
+    };
+  }, []);
+
+
+  useEffect(() => {
     if (!isListening) return;
     const { index, side } = activeRef.current;
     const blocks = getPageBlocks(index, side);
@@ -708,6 +780,65 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
     return () => window.removeEventListener("pointerdown", handlePointerDown);
   }, [showFontDropdown]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !("BroadcastChannel" in window)) {
+      return undefined;
+    }
+    const channel = new BroadcastChannel(`book-presence-${collabState.bookId}`);
+    presenceChannelRef.current = channel;
+
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (!data || !data.type) return;
+      if (data.userId === currentUserId) return;
+
+      if (data.type === "presence") {
+        setRemotePresence((prev) => {
+          const next = { ...prev };
+          if (!data.isActive) {
+            if (next[data.textId]) {
+              const { [data.userId]: _, ...rest } = next[data.textId];
+              if (Object.keys(rest).length) {
+                next[data.textId] = rest;
+              } else {
+                delete next[data.textId];
+              }
+            }
+            return next;
+          }
+          const textMap = next[data.textId] ? { ...next[data.textId] } : {};
+          textMap[data.userId] = {
+            userId: data.userId,
+            name: data.name,
+            color: data.color,
+            cursorIndex: data.cursorIndex,
+            selectionStart: data.selectionStart,
+            selectionEnd: data.selectionEnd,
+            lastSeenTs: data.lastSeenTs || Date.now(),
+          };
+          next[data.textId] = textMap;
+          return next;
+        });
+        return;
+      }
+
+      if (data.type === "page-update") {
+        const { pageIndex, side, blocks } = data;
+        if (!Array.isArray(blocks)) return;
+        suppressBroadcastRef.current = true;
+        updateBlocks(pageIndex, side, () => blocks, { broadcast: false });
+        queueMicrotask(() => {
+          suppressBroadcastRef.current = false;
+        });
+      }
+    };
+
+    return () => {
+      channel.close();
+      presenceChannelRef.current = null;
+    };
+  }, [collabState.bookId, currentUserId]);
+
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pages));
@@ -725,29 +856,80 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
     localStorage.setItem("tool-font-size", String(fontSize));
   }, [fontSize]);
 
-  const updateBlocks = (index, side, updater) => {
+  const updateBlocks = (index, side, updater, options = {}) => {
     setPages((prev) => {
       const next = [...prev];
       const page = { ...next[index] };
       const key = side === "front" ? "frontBlocks" : "backBlocks";
-      page[key] = updater(page[key] || []);
+      const updatedBlocks = updater(page[key] || []);
+      page[key] = updatedBlocks;
       next[index] = page;
+      if (options.broadcast && !suppressBroadcastRef.current) {
+        sendCollabEvent({
+          type: "page-update",
+          pageIndex: index,
+          side,
+          blocks: updatedBlocks,
+        });
+      }
       return next;
     });
   };
 
-  const addBlock = (index, side, block) => {
-    updateBlocks(index, side, (blocks) => [...blocks, block]);
+  const setBlocksForSide = (index, side, blocks, options = {}) => {
+    updateBlocks(index, side, () => blocks, options);
   };
 
-  const updateBlock = (index, side, blockId, updates) => {
+  const addBlock = (index, side, block) => {
+    updateBlocks(index, side, (blocks) => [...blocks, block], { broadcast: true });
+  };
+
+  const buildTextSegments = (block, nextText) => {
+    const username = currentUser?.username;
+    if (!username) return block.segments || [];
+    const prevText = block.text || "";
+    const prevSegments = Array.isArray(block.segments) ? block.segments : [];
+    if (nextText === prevText) return prevSegments;
+    const appended =
+      prevText && nextText.startsWith(prevText) ? nextText.slice(prevText.length) : null;
+    const userColor = getUserColor(username);
+    if (appended && appended.length) {
+      const last = prevSegments[prevSegments.length - 1];
+      if (last && last.username === username) {
+        return [
+          ...prevSegments.slice(0, -1),
+          { ...last, text: `${last.text}${appended}` },
+        ];
+      }
+      return [
+        ...prevSegments,
+        { username, color: userColor, text: appended, timestamp: Date.now() },
+      ];
+    }
+    return [{ username, color: userColor, text: nextText, timestamp: Date.now() }];
+  };
+
+  const updateBlock = (index, side, blockId, updates, options = {}) => {
     updateBlocks(index, side, (blocks) =>
-      blocks.map((block) => (block.id === blockId ? { ...block, ...updates } : block))
+      blocks.map((block) => {
+        if (block.id !== blockId) return block;
+        if (block.type === "text" && typeof updates.text === "string") {
+          if (Array.isArray(updates.segments)) {
+            return { ...block, ...updates };
+          }
+          const nextSegments = buildTextSegments(block, updates.text);
+          return { ...block, ...updates, segments: nextSegments };
+        }
+        return { ...block, ...updates };
+      }),
+      { broadcast: options.broadcast }
     );
   };
 
   const deleteBlock = (index, side, blockId) => {
-    updateBlocks(index, side, (blocks) => blocks.filter((block) => block.id !== blockId));
+    updateBlocks(index, side, (blocks) => blocks.filter((block) => block.id !== blockId), {
+      broadcast: true,
+    });
     setSelectedBlock(null);
   };
 
@@ -917,6 +1099,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   };
 
   const addPage = () => {
+    if (!isOwner) return;
     setPages((prev) => {
       const next = [...prev, createEmptyPage()];
       const nextIndex = next.length - 1;
@@ -931,6 +1114,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   };
 
   const requestRemovePage = () => {
+    if (!isOwner) return;
     if (isDeletingPage) return;
     setRemoveConfirmOpen(true);
   };
@@ -941,6 +1125,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   };
 
   const confirmRemovePage = () => {
+    if (!isOwner) return;
     if (isDeletingPage) return;
     if (pages.length <= 1) {
       return;
@@ -986,6 +1171,25 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
       totalPages: pages.length,
     });
   }, [current, pages.length, onPageInfoChange]);
+
+  useEffect(() => {
+    if (!isOwner) {
+      stopListening();
+      setIsMicArmed(false);
+      setPendingPlacement(false);
+    }
+  }, [isOwner]);
+
+  useEffect(() => {
+    if (!inviteOpen) return;
+    const handleOutside = (event) => {
+      if (inviteMenuRef.current && !inviteMenuRef.current.contains(event.target)) {
+        setInviteOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [inviteOpen]);
 
   const handleStickerSelect = (sticker) => {
     setSelectedSticker(sticker);
@@ -1054,6 +1258,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   };
 
   const startListening = (textId) => {
+    if (!isOwner) return;
     if (!textId) return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -1148,6 +1353,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
   };
 
   const armMic = () => {
+    if (!isOwner) return;
     stopListening();
     setActiveTool(TOOL_KEYS.MIC);
     setIsMicArmed(true);
@@ -1207,6 +1413,151 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
     return activeTool;
   })();
 
+  const getUserColor = (username) => {
+    const existing = collabState.collaborators.find((c) => c.username === username);
+    return existing?.color || getColorForUser(username || "");
+  };
+
+  const pendingInvites = collabState.invites.filter((invite) => invite.status === "pending");
+  const collaboratorsSorted = [
+    collabState.owner,
+    ...collabState.collaborators.filter((collab) => collab.role !== "owner"),
+  ];
+  const collaboratorCount = collaboratorsSorted.length;
+
+  const handleInviteSubmit = () => {
+    const trimmed = inviteName.trim();
+    if (!trimmed) {
+      setInviteError("Please enter a username.");
+      return;
+    }
+    const normalized = trimmed.toLowerCase();
+    const isKnownFriend = FRIEND_DIRECTORY.some(
+      (friend) => friend.toLowerCase() === normalized
+    );
+    if (!isKnownFriend) {
+      setInviteError("Username not found in friend list.");
+      return;
+    }
+    setCollabState((prev) => {
+      const alreadyInvited = prev.invites.some(
+        (invite) => invite.username.toLowerCase() === normalized
+      );
+      const alreadyCollaborator = prev.collaborators.some(
+        (collab) => collab.username.toLowerCase() === normalized
+      );
+      if (alreadyInvited || alreadyCollaborator) {
+        setInviteError("That username is already invited.");
+        return prev;
+      }
+      return {
+        ...prev,
+        invites: [...prev.invites, { username: trimmed, status: "pending" }],
+      };
+    });
+    setInviteName("");
+    setInviteError("");
+  };
+
+  const handleRemoveInvite = (username) => {
+    setCollabState((prev) => ({
+      ...prev,
+      invites: prev.invites.filter((invite) => invite.username !== username),
+    }));
+  };
+
+  const handleRemoveCollaborator = (username) => {
+    setCollabState((prev) => ({
+      ...prev,
+      collaborators: prev.collaborators.filter(
+        (collab) => collab.username !== username
+      ),
+      invites: prev.invites.filter((invite) => invite.username !== username),
+    }));
+  };
+
+  const handleAcceptInvite = (username) => {
+    setCollabState((prev) => {
+      const invite = prev.invites.find((item) => item.username === username);
+      if (!invite) return prev;
+      const nextInvites = prev.invites.map((item) =>
+        item.username === username ? { ...item, status: "accepted" } : item
+      );
+      const alreadyCollaborator = prev.collaborators.some(
+        (collab) => collab.username === username
+      );
+      const nextCollaborators = alreadyCollaborator
+        ? prev.collaborators
+        : [
+            ...prev.collaborators,
+            { username, role: "collaborator", color: getColorForUser(username) },
+          ];
+      return {
+        ...prev,
+        invites: nextInvites,
+        collaborators: nextCollaborators,
+      };
+    });
+  };
+
+  const sendCollabEvent = (payload) => {
+    const channel = presenceChannelRef.current;
+    if (!channel) return;
+    channel.postMessage({
+      ...payload,
+      userId: currentUserId,
+      name: currentUserName,
+      color: getUserColor(currentUserName),
+    });
+  };
+
+  const schedulePresenceBroadcast = (payload) => {
+    pendingPresenceRef.current = payload;
+    if (presenceThrottleRef.current) return;
+    presenceThrottleRef.current = setTimeout(() => {
+      if (pendingPresenceRef.current) {
+        sendCollabEvent({ type: "presence", ...pendingPresenceRef.current });
+        pendingPresenceRef.current = null;
+      }
+      presenceThrottleRef.current = null;
+    }, 120);
+  };
+
+  const clearLocalPresence = (textId) => {
+    const id = textId || lastPresenceTextIdRef.current;
+    if (!id) return;
+    sendCollabEvent({ type: "presence", textId: id, isActive: false });
+    lastPresenceTextIdRef.current = null;
+  };
+
+  const handleCursorPresence = ({ id, cursorIndex, selectionStart, selectionEnd }) => {
+    if (!id) return;
+    if (lastPresenceTextIdRef.current && lastPresenceTextIdRef.current !== id) {
+      clearLocalPresence(lastPresenceTextIdRef.current);
+    }
+    lastPresenceTextIdRef.current = id;
+    schedulePresenceBroadcast({
+      textId: id,
+      cursorIndex,
+      selectionStart,
+      selectionEnd,
+      isActive: true,
+      lastSeenTs: Date.now(),
+    });
+  };
+
+  useEffect(() => {
+    if (!isTextEditing) {
+      clearLocalPresence();
+    }
+  }, [isTextEditing]);
+
+  useEffect(() => {
+    return () => {
+      clearLocalPresence();
+    };
+  }, []);
+
   const renderToolbar = () => {
     const panelClass =
       "flex items-center gap-2 bg-[#FFFAE8] px-3 py-2 rounded-[10px] border border-[#4A3C3A] shadow-[0_3px_0_rgba(197,193,176,0.6)]";
@@ -1224,72 +1575,75 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
       FONT_OPTIONS.find((option) => option === currentFontName) || FONT_OPTIONS[0];
 
     return (
-      <div className="w-full rounded-[14px] bg-[#493B3A] border border-[#4A3C3A] px-6 py-3 flex items-center justify-between gap-4">
-        <img
-          src="/assets/mainLogo.png"
-          alt="Logo"
-          className="h-10 w-auto object-contain"
-        />
+      <>
+        <div className="w-full rounded-[14px] bg-[#493B3A] border border-[#4A3C3A] px-6 py-3 flex items-center justify-between gap-4">
+          <img
+            src="/assets/mainLogo.png"
+            alt="Logo"
+            className="h-10 w-auto object-contain"
+          />
 
-        <div className="flex-1 flex justify-center">
-          {isTextSelected && (
-            <div className="flex flex-nowrap gap-2 items-center justify-center">
-              <div className={panelClass}>
-                <span className={panelLabel}>Font</span>
-                <div className="font-dropdown" ref={fontMenuRef}>
-                  <button
-                    type="button"
-                    className="font-dropdown-button"
-                    onClick={() => setShowFontDropdown((prev) => !prev)}
-                    style={{ fontFamily: `"${currentFont}"` }}
-                  >
-                    {currentFont}
-                  </button>
-                  {showFontDropdown && (
-                    <div className="font-dropdown-list">
-                      {FONT_OPTIONS.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`font-dropdown-item ${
-                            normalizeFontName(fontFamily) === option ? "selected" : ""
-                          }`}
-                          style={{ fontFamily: `"${option}"` }}
-                          onClick={() => {
-                            handleFontFamilyChange(`"${option}"`);
-                            setShowFontDropdown(false);
-                          }}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+          <div className="flex-1 flex justify-center">
+            {isTextSelected && (
+              <div className="flex flex-nowrap gap-2 items-center justify-center">
+                <div className={panelClass}>
+                  <span className={panelLabel}>Font</span>
+                  <div className="font-dropdown" ref={fontMenuRef}>
+                    <button
+                      type="button"
+                      className="font-dropdown-button"
+                      onClick={() => setShowFontDropdown((prev) => !prev)}
+                      style={{ fontFamily: `"${currentFont}"` }}
+                    >
+                      {currentFont}
+                    </button>
+                    {showFontDropdown && (
+                      <div className="font-dropdown-list">
+                        {FONT_OPTIONS.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`font-dropdown-item ${
+                              normalizeFontName(fontFamily) === option ? "selected" : ""
+                            }`}
+                            style={{ fontFamily: `"${option}"` }}
+                            onClick={() => {
+                              handleFontFamilyChange(`"${option}"`);
+                              setShowFontDropdown(false);
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className={panelClass}>
-                <span className={panelLabel}>Size</span>
-                <button
-                  className={smallButton}
-                  onClick={() => handleFontSizeChange(fontSize - 2)}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={MIN_TEXT_SIZE}
-                  max={MAX_TEXT_SIZE}
-                  value={fontSize}
-                  onChange={(event) => handleFontSizeChange(parseInt(event.target.value || "0", 10))}
-                  className="w-14 bg-[#FFFAE8] text-[#4A3C3A] text-sm rounded-[8px] px-2 py-1 text-center border border-[#4A3C3A] focus:outline-none focus:ring-2 focus:ring-[#F4E4A8] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
-                />
-                <button
-                  className={smallButton}
-                  onClick={() => handleFontSizeChange(fontSize + 2)}
-                >
-                  +
-                </button>
-              </div>
+                <div className={panelClass}>
+                  <span className={panelLabel}>Size</span>
+                  <button
+                    className={smallButton}
+                    onClick={() => handleFontSizeChange(fontSize - 2)}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={MIN_TEXT_SIZE}
+                    max={MAX_TEXT_SIZE}
+                    value={fontSize}
+                    onChange={(event) =>
+                      handleFontSizeChange(parseInt(event.target.value || "0", 10))
+                    }
+                    className="w-14 bg-[#FFFAE8] text-[#4A3C3A] text-sm rounded-[8px] px-2 py-1 text-center border border-[#4A3C3A] focus:outline-none focus:ring-2 focus:ring-[#F4E4A8] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+                  />
+                  <button
+                    className={smallButton}
+                    onClick={() => handleFontSizeChange(fontSize + 2)}
+                  >
+                    +
+                  </button>
+                </div>
                 <div className={panelClass}>
                   <span className={panelLabel}>Color</span>
                   <input
@@ -1299,21 +1653,157 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
                     className="color-preview"
                   />
                 </div>
+              </div>
+            )}
+          </div>
+
+          {isOwner && (
+            <div className="relative" ref={inviteMenuRef}>
+              <button
+                type="button"
+                onClick={() => setInviteOpen(true)}
+                className="h-[46px] px-7 rounded-[8px] bg-gradient-to-b from-[#F4E4A8] to-[#E8D58F] text-[#402f2d] text-base font-semibold border border-[#c9b675] shadow-[0_2px_0_rgba(197,193,176,0.6)] transition-transform hover:scale-[1.03] active:translate-y-[1px]"
+              >
+                Invite
+              </button>
             </div>
           )}
         </div>
 
-        <button
-          type="button"
-          className="h-[46px] px-7 rounded-[8px] bg-gradient-to-b from-[#F4E4A8] to-[#E8D58F] text-[#402f2d] text-base font-semibold border border-[#c9b675] shadow-[0_2px_0_rgba(197,193,176,0.6)] transition-transform hover:scale-[1.03] active:translate-y-[1px]"
-        >
-          Invite
-        </button>
-      </div>
+        {inviteOpen && (
+          <div
+            className="invite-modal-backdrop"
+            onClick={() => setInviteOpen(false)}
+          >
+            <div
+              className="invite-modal"
+              ref={inviteMenuRef}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="invite-modal-header">
+                <div>
+                  <h3 className="invite-modal-title">Invite Collaborators</h3>
+                  <p className="invite-modal-subtitle">
+                    Share your book with friends
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="invite-modal-close"
+                  onClick={() => setInviteOpen(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="invite-input-row">
+                <input
+                  type="text"
+                  value={inviteName}
+                  onChange={(event) => {
+                    setInviteName(event.target.value);
+                    setInviteError("");
+                  }}
+                  className="invite-input"
+                  placeholder="Enter your friend’s username"
+                />
+                <button
+                  type="button"
+                  className="invite-action invite-primary"
+                  onClick={handleInviteSubmit}
+                >
+                  Invite
+                </button>
+              </div>
+              {inviteError && <span className="invite-error">{inviteError}</span>}
+
+              <div className="invite-section">
+                <span className="invite-section-title">Pending invites</span>
+                {pendingInvites.length ? (
+                  <ul className="invite-list">
+                    {pendingInvites.map((invite) => (
+                      <li key={invite.username} className="invite-card">
+                        <span className="invite-avatar muted">
+                          {invite.username.slice(0, 1).toUpperCase()}
+                        </span>
+                        <div className="invite-card-info">
+                          <span className="invite-username">{invite.username}</span>
+                          <span className="invite-subtext">Pending</span>
+                        </div>
+                        <div className="invite-actions">
+                          <button
+                            type="button"
+                            className="invite-accept"
+                            onClick={() => handleAcceptInvite(invite.username)}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            className="invite-remove"
+                            onClick={() => handleRemoveInvite(invite.username)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="invite-empty">No pending invites</span>
+                )}
+              </div>
+
+              <div className="invite-section">
+                <span className="invite-section-title">
+                  Collaborators ({collaboratorCount})
+                </span>
+                <ul className="invite-list">
+                  {collaboratorsSorted.map((collab) => (
+                    <li key={collab.username} className="invite-card">
+                      <span className="invite-avatar" style={{ background: collab.color }}>
+                        {collab.username.slice(0, 1).toUpperCase()}
+                      </span>
+                        <div className="invite-card-info">
+                          <div className="invite-name-row">
+                            <span className="invite-username">{collab.username}</span>
+                          {collab.role === "owner" && (
+                            <span className="invite-role-badge">Owner</span>
+                          )}
+                          </div>
+                        <span className="invite-subtext">
+                          {collab.role === "owner" ? "Full Access" : "Can edit"}
+                        </span>
+                      </div>
+                      {collab.role !== "owner" && (
+                        <button
+                          type="button"
+                          className="invite-remove"
+                          onClick={() => handleRemoveCollaborator(collab.username)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="invite-note-card">
+                Collaborators can view and edit content, but cannot use microphone or
+                manage pages.
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
   const handleBottomToolClick = (tool, mode) => {
+    if (tool === "mic" && !isOwner) {
+      return;
+    }
     if (tool !== "mic") {
       disarmMic();
     }
@@ -1508,6 +1998,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
                 width: block.w,
                 height: block.h,
                 text: block.text || "",
+                segments: block.segments || [],
                 fontFamily: block.font || fontFamily,
                 color: block.color || fontColor,
                 fontSize: block.fontSize || DEFAULT_TEXT_SIZE,
@@ -1571,6 +2062,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
                       w: item.width,
                       h: item.height,
                       text: item.text,
+                      segments: item.segments,
                       font: item.fontFamily,
                       color: item.color,
                       fontSize: item.fontSize,
@@ -1617,15 +2109,7 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
                   return null;
                 })
                 .filter(Boolean);
-
-              setPages((prev) => {
-                const next = [...prev];
-                const page = { ...next[active.index] };
-                const key = active.side === "front" ? "frontBlocks" : "backBlocks";
-                page[key] = newBlocks;
-                next[active.index] = page;
-                return next;
-              });
+              setBlocksForSide(active.index, active.side, newBlocks, { broadcast: true });
             }}
             selectedId={selectedBlock?.id || null}
             onSelect={(id) => {
@@ -1730,10 +2214,16 @@ export default function FlipBook({ registerActions, onPageCountChange, onPageInf
                 stopListening();
               }
             }}
+            currentUser={currentUser}
+            getUserColor={getUserColor}
+            remotePresence={remotePresence}
+            currentUserId={currentUserId}
+            onCursorChange={handleCursorPresence}
             toolbar={renderToolbar()}
             bottomToolProps={{
               activeTool: bottomActiveTool,
               isListening,
+              isMicDisabled: !isOwner,
               onToolClick: handleBottomToolClick,
             }}
             stickerPopover={stickerPopover}

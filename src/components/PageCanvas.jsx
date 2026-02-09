@@ -18,6 +18,11 @@ export default function PageCanvas({
   onAddItem,
   onTextEditStart,
   onTextEditEnd,
+  currentUser,
+  getUserColor,
+  remotePresence,
+  currentUserId,
+  onCursorChange,
 }) {
   const canvasRef = useRef(null);
 
@@ -43,7 +48,46 @@ export default function PageCanvas({
 
   const updateItem = (id, updates) => {
     const updatedContent = content.map((item) =>
-      item.id === id ? { ...item, ...updates } : item
+      item.id === id
+        ? (() => {
+            if (item.type === 'text' && typeof updates.text === 'string') {
+              const username = currentUser?.username;
+              if (!username) {
+                return { ...item, ...updates };
+              }
+              const prevText = item.text || '';
+              const nextText = updates.text;
+              const prevSegments = Array.isArray(item.segments) ? item.segments : [];
+              let nextSegments = prevSegments;
+              if (nextText !== prevText) {
+                const appended = prevText && nextText.startsWith(prevText)
+                  ? nextText.slice(prevText.length)
+                  : null;
+                const userColor = getUserColor ? getUserColor(username) : '#F4E4A8';
+                if (appended && appended.length) {
+                  const last = prevSegments[prevSegments.length - 1];
+                  if (last && last.username === username) {
+                    nextSegments = [
+                      ...prevSegments.slice(0, -1),
+                      { ...last, text: `${last.text}${appended}` },
+                    ];
+                  } else {
+                    nextSegments = [
+                      ...prevSegments,
+                      { username, color: userColor, text: appended, timestamp: Date.now() },
+                    ];
+                  }
+                } else {
+                  nextSegments = [
+                    { username, color: userColor, text: nextText, timestamp: Date.now() },
+                  ];
+                }
+              }
+              return { ...item, ...updates, segments: nextSegments };
+            }
+            return { ...item, ...updates };
+          })()
+        : item
     );
     onContentUpdate(updatedContent);
   };
@@ -103,6 +147,7 @@ export default function PageCanvas({
               width={constrainedItem.width}
               height={constrainedItem.height}
               text={constrainedItem.text}
+              segments={constrainedItem.segments}
               fontFamily={constrainedItem.fontFamily || fontFamily}
               color={constrainedItem.color || color}
               fontSize={constrainedItem.fontSize || fontSize}
@@ -113,6 +158,9 @@ export default function PageCanvas({
               onSelect={() => onSelect(constrainedItem.id)}
               onEditStart={() => onTextEditStart?.(constrainedItem.id)}
               onEditEnd={() => onTextEditEnd?.(constrainedItem.id)}
+              onCursorChange={(payload) => onCursorChange?.(payload)}
+              remotePresence={remotePresence?.[constrainedItem.id]}
+              currentUserId={currentUserId}
             />
           );
         } else if (constrainedItem.type === 'sticker') {

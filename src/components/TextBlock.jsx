@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import DraggableResizable from './DraggableResizable';
+import RemoteCursorsOverlay from './RemoteCursorsOverlay';
 
 export default function TextBlock({
   id,
@@ -8,6 +9,7 @@ export default function TextBlock({
   width,
   height,
   text,
+  segments,
   fontFamily,
   color,
   fontSize = 16,
@@ -18,10 +20,15 @@ export default function TextBlock({
   onSelect,
   onEditStart,
   onEditEnd,
+  onCursorChange,
+  remotePresence,
+  currentUserId,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(text);
   const textareaRef = useRef(null);
+  const editorWrapperRef = useRef(null);
+  const measureRef = useRef(null);
   const editingStateRef = useRef(isEditing);
 
   useEffect(() => {
@@ -47,6 +54,19 @@ export default function TextBlock({
 
   const handleDoubleClick = () => {
     setIsEditing(true);
+  };
+
+  const emitCursorChange = () => {
+    if (!textareaRef.current) return;
+    const { selectionStart, selectionEnd } = textareaRef.current;
+    const cursorIndex =
+      Number.isFinite(selectionEnd) ? selectionEnd : selectionStart || 0;
+    onCursorChange?.({
+      id,
+      cursorIndex,
+      selectionStart,
+      selectionEnd,
+    });
   };
 
   const handleBlur = () => {
@@ -92,25 +112,60 @@ export default function TextBlock({
           overflow: 'hidden',
         }}
       >
-        {isEditing ? (
+        <div className="relative w-full h-full" ref={editorWrapperRef}>
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              className="w-full h-full resize-none outline-none border-none bg-transparent"
+              value={editText}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setEditText(nextValue);
+                emitCursorChange();
+                onUpdate?.({ text: nextValue });
+              }}
+              onSelect={emitCursorChange}
+              onKeyUp={emitCursorChange}
+              onMouseUp={emitCursorChange}
+              onFocus={emitCursorChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              style={{
+                fontFamily,
+                color,
+                fontSize: `${fontSize}px`,
+              }}
+            />
+          ) : (
+            <div className="w-full h-full whitespace-pre-wrap break-words">
+              {Array.isArray(segments) && segments.length
+                ? segments.map((segment) => segment.text).join('')
+                : text || 'Double-click to edit'}
+            </div>
+          )}
+
           <textarea
-            ref={textareaRef}
-            className="w-full h-full resize-none outline-none border-none bg-transparent"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
+            ref={measureRef}
+            className="remote-caret-measure"
+            value={isEditing ? editText : text || ""}
+            readOnly
+            tabIndex={-1}
+            aria-hidden="true"
             style={{
               fontFamily,
               color,
               fontSize: `${fontSize}px`,
+              display: isEditing ? "none" : "block",
             }}
           />
-        ) : (
-          <div className="w-full h-full whitespace-pre-wrap break-words">
-            {text || 'Double-click to edit'}
-          </div>
-        )}
+
+          <RemoteCursorsOverlay
+            textareaRef={isEditing ? textareaRef : measureRef}
+            wrapperRef={editorWrapperRef}
+            presenceMap={remotePresence}
+            currentUserId={currentUserId}
+          />
+        </div>
       </div>
     </DraggableResizable>
   );

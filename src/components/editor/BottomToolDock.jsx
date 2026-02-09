@@ -9,6 +9,7 @@ const dockPath =
 export default function BottomToolDock({
   activeTool,
   isListening,
+  isMicDisabled = false,
   onToolClick = () => {},
 }) {
   const [internalActiveTool, setInternalActiveTool] = useState(null);
@@ -25,6 +26,9 @@ export default function BottomToolDock({
     }
     if (tool !== "upload") {
       setShowUploadMenu(false);
+    }
+    if (tool === "mic" && isMicDisabled) {
+      return;
     }
     if (tool === "mic") {
       if (currentListening) {
@@ -104,6 +108,7 @@ export default function BottomToolDock({
           <MicToolButton
             isActive={currentListening}
             isListening={currentListening}
+            isDisabled={isMicDisabled}
             onClick={() => handleToolClick("mic")}
           />
 
