@@ -12,7 +12,7 @@ export default function App() {
       <HomeScreen title="Your Space to Create">
         <FlipBook />
       </HomeScreen>
-      {SHOW_AUTH_SANDBOX && <AuthSandbox initial="create-profile" />}
+      {SHOW_AUTH_SANDBOX && <AuthSandbox initial="dashboard" />}
     </>
   );
 }
